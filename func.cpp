@@ -71,6 +71,49 @@ int nibutan(int *x, int n, int key) {
 
 
 
+//////////めぐる式二分探索
+
+//[false, false, ...., true, true, ....]という配列の、trueの一番左側のindexを返す関数
+bool isOK_ft(vector<int> &x, int index, int key) {
+    if (x[index] >= key) return true;
+    else return false;
+}
+int meguru_nibutan_ft(vector<int> &x, int n, int key){
+	int ng = -1;
+	int ok = n; //n = (int)x.size();
+
+	while(abs(ng - ok) > 1){
+		int mid = (ok + ng) / 2;
+
+        if (isOK_ft(x, mid, key)) ok = mid;
+        else ng = mid;
+	}
+    return ok;
+}
+
+
+//[true, true, ...., false, false, .....]という配列の、trueの一番右側のindexを返す関数
+bool isOK_tf(vector<int> &x, int index, int key) {
+    if (x[index] <= key) return true;
+    else return false;
+}
+int meguru_nibutan_tf(vector<int> &x, int n, int key){
+	int ok = -1;
+	int ng = n; //n = (int)x.size();
+
+	while(abs(ng - ok) > 1){
+		int mid = (ok + ng) / 2;
+
+        if (isOK_tf(x, mid, key)) ok = mid;
+        else ng = mid;
+	}
+    return ng;
+}
+
+
+
+
+
 
 /////////////         UnionFind
 //    バラバラの要素を結合してグループにまとめる際に使える構造。
