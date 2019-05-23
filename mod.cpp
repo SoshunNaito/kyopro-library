@@ -3,7 +3,7 @@
 
 int mod = 1000000007;
 
-long long mod_adjust(long long a) {
+long long mod_adjust(long long a) {//	ó]ÇËÇÇ∆ÇÈ(0Å`mod-1Ç…í≤êÆÇ∑ÇÈ)
 	if (a > mod) {
 		return a % mod;
 	}
@@ -14,39 +14,39 @@ long long mod_adjust(long long a) {
 	}
 	return a;
 }
-int mod_adjust(int a) {
+int mod_adjust(int a) {//	ó]ÇËÇÇ∆ÇÈ(0Å`mod-1Ç…í≤êÆÇ∑ÇÈ)
 	return (int)mod_adjust((long long)a);
 }
-int mod_add(int a, int b) {
+int mod_add(int a, int b) {//	ë´ÇµéZ
 	a = mod_adjust(a), b = mod_adjust(b);
 	long long k = a % mod; k += b % mod; k %= mod;
 	return (int)k;
 }
-int mod_sub(int a, int b) {
+int mod_sub(int a, int b) {//	à¯Ç´éZ
 	long long k = mod_adjust((long long)a); k += mod_adjust((long long)b); k %= mod;
 	return (int)k;
 }
-int mod_multi(int a, int b) {
+int mod_multi(int a, int b) {//	ä|ÇØéZ
 	long long k = mod_adjust((long long)a); k *= mod_adjust((long long)b); k %= mod;
 	return (int)k;
 }
-int mod_inv(int a) {
+int mod_inv(int a) {//	ãtå≥
 	a = mod_adjust(a);
 	if (a == 1) { return 1; }
 	long long p = mod, q = a, m = 0, n = 1, r, c;
 
 	while (q > 1) {
 		r = p % q;
-		c = p/q;
+		c = p / q;
 		c = mod_adjust(m - n * c);
 		p = q, m = n, q = r, n = c;
 	}
 	return n;
 }
-int mod_div(int a, int b) {
+int mod_div(int a, int b) {//	äÑÇËéZ
 	return mod_multi(a, mod_inv(b));
 }
-int mod_pow(int x, int n) {
+int mod_pow(int x, int n) {//	ó›èÊ(logNÉIÅ[É_Å[Ç»ÇÃÇ≈ë¨Ç¢)
 	if (n < 0) {
 		return mod_pow(mod_div(1, x), -n);
 	}
@@ -65,8 +65,12 @@ int mod_pow(int x, int n) {
 		return mod_multi(mod_multi(k, k), x);
 	}
 }
-int *factorial;
-int *factorial_inv;
+
+int* factorial = NULL;			//	äKèÊ
+int* factorial_inv = NULL;		//	äKèÊÇÃãtå≥
+
+//	äKèÊÇéñëOÇ…åvéZÇµÇƒÇ®Ç≠ä÷êîÅB
+//	NÇÕmod_combination(n, r)Ç≈åƒÇ—èoÇ≥ÇÍÇ§ÇÈç≈ëÂÇÃêîÅB
 void calc_factorial(int N) {////////////////////////// èâÇﬂÇ…ïKÇ∏åƒÇ—èoÇ∑Ç±Ç∆ÅIÅIÅI
 	factorial = new int[N + 1];
 	factorial_inv = new int[N + 1];
@@ -78,10 +82,30 @@ void calc_factorial(int N) {////////////////////////// èâÇﬂÇ…ïKÇ∏åƒÇ—èoÇ∑Ç±Ç∆ÅIÅ
 		factorial_inv[i] = mod_inv(factorial[i]);
 	}
 }
-int mod_combination(int n, int r) {
+int mod_combination(int n, int r) {//	nCr	ÇåvéZÇ∑ÇÈ
+	if (n < 0 || r < 0 || r > n) { return 0; }
 	return mod_multi(factorial[n], mod_multi(factorial_inv[n - r], factorial_inv[r]));
 }
 
+
+//////		égópó·
+int main() {
+	calc_factorial(100);
+
+	for (int i = 0; i < 10; i++) {
+		cout << "256^" << i << " = " << mod_pow(256, i) << endl;
+	}
+	cout << endl;
+	for (int i = 0; i < 10; i++) {
+		cout << i << "^-1 = " << mod_inv(i) << endl;
+	}
+	cout << endl;
+	for (int i = 0; i < 10; i++) {
+		cout << 10 << "C" << i <<" = " << mod_combination(10, i) << endl;
+	}
+
+	return 0;
+}
 
 
 
