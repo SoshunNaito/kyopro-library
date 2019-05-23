@@ -90,18 +90,18 @@ int mod_combination(int n, int r) {//	nCr	を計算する
 
 //////		使用例
 int main() {
-	calc_factorial(100);
+	calc_factorial(100);//	mod_combinationを使うための事前準備
 
 	for (int i = 0; i < 10; i++) {
-		cout << "256^" << i << " = " << mod_pow(256, i) << endl;
+		cout << "256^" << i << " = " << mod_pow(256, i) << endl;//	累乗
 	}
 	cout << endl;
 	for (int i = 0; i < 10; i++) {
-		cout << i << "^-1 = " << mod_inv(i) << endl;
+		cout << i << "^-1 = " << mod_inv(i) << endl;//	逆元
 	}
 	cout << endl;
 	for (int i = 0; i < 10; i++) {
-		cout << 10 << "C" << i <<" = " << mod_combination(10, i) << endl;
+		cout << 10 << "C" << i <<" = " << mod_combination(10, i) << endl;//	二項係数
 	}
 
 	return 0;

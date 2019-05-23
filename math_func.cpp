@@ -1,8 +1,8 @@
 /*
 /////////////         数学
 
-template <typename T>
-T gcd(T a, T b) {
+template <typename T>//	Tはintかlong
+T gcd(T a, T b) {//	最大公約数
 	if (a < 0) { a = -a; }
 	if (b < 0) { b = -b; }
 	if (a == 0) { return b; }
@@ -12,8 +12,8 @@ T gcd(T a, T b) {
 	}
 	return gcd(b, a % b);
 }
-template <typename T>
-T gcd(int size, T* a) {
+template <typename T>//	Tはintかlong
+T gcd(int size, T* a) {//	配列の最大公約数
 	if (size <= 0 || a == NULL) { return 0; }
 	T c = abs(a[0]);
 	for (int i = 1; i < size; i++) {
@@ -24,7 +24,9 @@ T gcd(int size, T* a) {
 	}
 	return c;
 }
-long lcm(int a, int b) {
+
+template <typename T>//	Tはintかlong
+long lcm(T a, T b) {//	最小公倍数
 	if (a < 0) { a = -a; }
 	if (b < 0) { b = -b; }
 	if (a == 0) { return b; }
@@ -34,26 +36,20 @@ long lcm(int a, int b) {
 	x *= b;
 	return x;
 }
-long lcm(long a, long b) {
-	if (a < 0) { a = -a; }
-	if (b < 0) { b = -b; }
-	if (a == 0) { return b; }
-	if (b == 0) { return a; }
-	a /= gcd(a, b);
-	a *= b;
-	return a;
-}
-template <typename T>
-long lcm(int size, T* a) {
+template <typename T>//	Tはintかlong
+long lcm(int size, T* a) {//	配列の最小公倍数
 	if (size <= 0 || a == NULL) { return 0; }
 	long c = abs(a[0]);
 	for (int i = 1; i < size; i++) {
-		c = lcm(c, a[i]);
+		c = lcm(c, (long)a[i]);
 	}
 	return c;
 }
 
-long l_sqrt(long n) {// (long)√n を計算する
+//	(long)√n を計算する。O(logn)で計算するから速いよ
+//	実は double sqrt(double x) を使った方が高速だけど、計算誤差が気になる...
+//	l_sqrtは整数のまま計算してるから誤差の心配はないよ
+long l_sqrt(long n) {
 	if (n <= 0) { return 0; }
 
 	if (n > 256) {
@@ -121,6 +117,46 @@ private:
 		degree.clear();
 	}
 };
+
+
+//////		使用例
+int main() {
+	int N; cin >> N;
+	int* x = new int[N];
+	for (int i = 0; i < N; i++) {
+		cin >> x[i];
+	}
+
+
+	//	最大公約数gcd・最小公倍数lcmの計算
+
+	cout << "gcd(12, 18) = " << gcd(12, 18) << ", lcm(12, 18) = " << lcm(12, 18) << endl;
+	cout << "gcd(432, 234) = " << gcd(432, 234) << ", lcm(432, 234) = " << lcm(432, 234) << endl;
+	cout << endl;
+	cout << "gcd(N, x) = " << gcd(N, x) << ", lcm(N, x) = " << lcm(N, x) << endl;
+	cout << endl;
+
+
+	//	素因数分解
+
+	primeFactorClass p;
+	p.factorize(3628800);
+
+	cout << "3628800 = ";
+	for (int i = 0; i < p.factorNum; i++) {//	出力
+		if (i == 0) {
+			cout << p.prime[i] << "^" << p.degree[i];
+		}
+		else {
+			cout << " * "<< p.prime[i] << "^" << p.degree[i];
+		}
+	}
+
+	return 0;
+}
+//////		検証用入力データ
+3
+56 84 126
 
 
 
