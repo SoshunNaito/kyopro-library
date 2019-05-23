@@ -16,7 +16,7 @@ using namespace std;
 
 
 
-/////////////         大小比較
+/////////////         最大・最小
 
 int arrayMax(int size, int *array, int *dest) {
 	if (size <= 0 || array == NULL) { return -1; }
@@ -41,74 +41,60 @@ int arrayMin(int size, int *array, int *dest) {
 
 
 
-/////////////         にぶたん
-// データ配列に指定された値を挿入したときの番号を返す。
-// 例えば x[3] = 5, x[4] = 8 のとき nibutan(5) = ... = nibutan(7) = 4, nibutan(8) = ... = 5
 
-int nibutan(int *x, int n, int key) {
-	if (n == 0 || x == NULL) {
-		return -1;
+
+//////////一般化した二分探索
+
+const bool LEFT = false;
+const bool RIGHT = true;
+bool judgeLR(int i, int key);// 左に属するか右に属するかを判断する関数。下で定義する。
+
+int nibutanL(int size, int key) {// LEFTグループに属するうち最も右側のindexを得る
+	int L = -1;
+	int R = size;
+	while (abs(R - L) > 1) {
+		int mid = (L + R) / 2;
+		if (judgeLR(mid, key) == RIGHT) R = mid;
+		else L = mid;
 	}
-	if (key < x[0]) {
-		return 0;
-	}
-	if (x[n - 1] <= key) {
-		return n;
-	}
-	int a = 0, b = n - 1;
-	while (b - a > 1) {
-		int c = (a + b) / 2;
-		if (x[c] <= key) {
-			a = c;
-		}
-		else {
-			b = c;
-		}
-	}
-	return b;
+	return L;
+}
+int nibutanR(int size, int key) {//RIGHTグループに属するうち最も左側のindexを得る
+	return nibutanL(size, key) + 1;
 }
 
 
+//////   使用例
+int* x;// 昇順ソート済み配列
 
-
-//////////めぐる式二分探索
-
-//[false, false, ...., true, true, ....]という配列の、trueの一番左側のindexを返す関数
-bool isOK_ft(vector<int> &x, int index, int key) {
-    if (x[index] >= key) return true;
-    else return false;
-}
-int meguru_nibutan_ft(vector<int> &x, int n, int key){
-	int ng = -1;
-	int ok = n; //n = (int)x.size();
-
-	while(abs(ng - ok) > 1){
-		int mid = (ok + ng) / 2;
-
-        if (isOK_ft(x, mid, key)) ok = mid;
-        else ng = mid;
+//	LEFTグループ	...	  要素がkeyより小さい
+//	RIGHTグループ	...	  要素がkey以上
+bool judgeLR(int i, int key) {
+	if (x[i] < key) {
+		return LEFT;
 	}
-    return ok;
+	return RIGHT;
 }
 
-
-//[true, true, ...., false, false, .....]という配列の、trueの一番右側のindexを返す関数
-bool isOK_tf(vector<int> &x, int index, int key) {
-    if (x[index] <= key) return true;
-    else return false;
-}
-int meguru_nibutan_tf(vector<int> &x, int n, int key){
-	int ok = -1;
-	int ng = n; //n = (int)x.size();
-
-	while(abs(ng - ok) > 1){
-		int mid = (ok + ng) / 2;
-
-        if (isOK_tf(x, mid, key)) ok = mid;
-        else ng = mid;
+int main() {
+	int N; cin >> N;
+	x = new int[N];
+	for (int i = 0; i < N; i++) {
+		cin >> x[i];
 	}
-    return ng;
+
+	cout << "LEFTグループ	...	  要素がkeyより小さい" << endl;
+	cout << "RIGHTグループ	...	  要素がkey以上" << endl;
+
+	for (int i = 0; i <= 20; i += 2) {
+		cout << "key = " << i << ", nibutanL = " << nibutanL(N, i) << ", nibutanR = " << nibutanR(N, i) << endl;
+	}
+	return 0;
 }
+//////		検証用入力データ
+10
+0 1 1 2 2 5 8 15 18 18
+
 
 
 
@@ -184,4 +170,50 @@ public:
 };
 
 
+//////		使用例
+int main() {
+	int N, M; cin >> N >> M;		// ノードの個数、エッジの本数を取得
+
+	UnionFindClass uf;				// クラスの作成
+	uf.activate(N);					// ノード数Nに初期化
+	
+	for (int i = 0; i < M; i++) {
+		int x, y;
+		cin >> x >> y;				// それぞれのエッジが繋ぐ頂点を取得
+		uf.connect(x, y);			// つなげる
+	}
+	
+	for (int i = 0; i < N; i++) {	// 全頂点についてチェック
+		// 親番号とサイズを出力
+		// 自分が親かどうか見たかったら uf.getParent(i) == i で判断する
+
+		cout <<"i = "<< i << ", Parent = " << uf.getParent(i) << ", Size = " << uf.getSize(i) << endl;
+	}
+	
+	return 0;
+}
+//////		検証用入力データ
+5 4
+0 1
+1 2
+0 2
+3 4
+
+
+
+
+
+
+
+/////////////         備忘録
+
+優先度付きキューの構文
+	priority_queue<int> que; // 降順に出力
+	priority_queue<int, vector<int>, greater<int>> que; // 昇順に出力
+
+	que.push(int n); で数字を追加
+	que.top(); で最大値/最小値を見る
+	que.pop(); で最大値/最小値を消去
+	que.size(); でサイズ取得
+	que.empty(); で空かどうかチェック
 */
