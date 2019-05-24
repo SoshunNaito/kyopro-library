@@ -228,7 +228,7 @@ int main() {
 
 	long *buf = G.getDistanceFrom(0);// 0番ノードからの最短距離を受け取る
 	for (int i = 0; i < N; i++) {
-		cout << "i = " << i << ", distace = " << buf[i] << endl;// 最短距離を出力
+		cout << "i = " << i << ", distance = " << buf[i] << endl;// 最短距離を出力
 	}
 
 	delete[] buf;
