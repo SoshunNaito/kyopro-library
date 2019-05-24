@@ -1,27 +1,19 @@
 /*
-/////////////         グラフを扱うクラス
+/////////////		グラフを扱うクラス
 
 class edgeClass {// 辺のクラス
 public:
 	edgeClass() {
-		x = 0, y = 0, weigh = 1;
+		x = 0, y = 0, weight = 1;
 	}
 	void swap() {
 		int c = x;
 		x = y;
 		y = c;
 	}
-	void input(bool weighedFlag) {
-		if (weighedFlag) {
-			cin >> x >> y >> weigh;
-		}
-		else {
-			cin >> x >> y;
-		}
-	}
-	int x, y, weigh;
+	int x, y, weight;
 };
-bool edgeClass_compare(const edgeClass& a, const edgeClass& b) {//keyを見比べる
+bool edgeClass_compare(const edgeClass& a, const edgeClass& b) {// keyを見比べる
 	int x = b.x - a.x;
 	if (x > 0) { return true; }
 	x = b.y - a.y;
@@ -33,178 +25,141 @@ public:
 		N = 0;
 		M = 0;
 		next = NULL;
-		edge = NULL;
-		weigh = NULL;
-		nodeWeighedFlag = false;
-		edgeWeighedFlag = false;
+		edge.clear();
+		weight = NULL;
 		directedFlag = false;
 	}
-	void activateMain(bool nodeWeigh, bool edgeWeigh, bool subFlag, bool directed) {// subFlag==trueなら入力から1を引く。direted==trueなら有向グラフ
-		if (next != NULL) { delete[] next; }
-		if (edge != NULL) { delete[] edge; }
-		if (weigh != NULL) { delete[] weigh; }
 
-		next = new vector<edgeClass>[N];
-		weigh = new int[N];
-		edge = new edgeClass[M];
-
-		nodeWeighedFlag = nodeWeigh;
-		edgeWeighedFlag = edgeWeigh;
+	void activate(int n, bool directed = false) {// 頂点数nのグラフを初期化する。
 		directedFlag = directed;
+		N = n;
+		M = 0;
+		edge.clear();
+		if (next != NULL) { delete[] next; }
+		if (weight != NULL) { delete[] weight; }
+		next = new vector<edgeClass>[N];
+		weight = new int[N];
+		for (int i = 0; i < N; i++) { weight[i] = 1; }
+	}
+	void setNodeWeight(int n, int weight) {// n番のノードの重みをweightに設定
+		this->weight[n] = weight;
+	}
+	void addEdge(int x, int y, int weight = 1) {// エッジ追加
+		edgeClass e;
+		e.x = x;
+		e.y = y;
+		e.weight = weight;
 
-		for (int i = 0; i < N; i++) {
-			weigh[i] = 1;
-		}
-		if (nodeWeigh) {
-			for (int i = 0; i < N; i++) {
-				cin >> weigh[i];
-			}
+		if (e.x < 0 || e.x >= N) { return; }
+
+		edge.push_back(e); M++;
+		next[e.x].push_back(e);
+
+		if (directedFlag == false) {
+			e.swap();
+			next[e.x].push_back(e);
 		}
 
-		for (int i = 0; i < M; i++) {// 入力を受け取っておく
-			edge[i].input(edgeWeigh);
-			if (subFlag) {
-				edge[i].x--;
-				edge[i].y--;
-			}
-
-			next[edge[i].x].push_back(edge[i]);
-			if (directedFlag == false) {
-				edge[i].swap();
-				next[edge[i].x].push_back(edge[i]);
-				edge[i].swap();
-			}
-		}
+	}
+	void sortEdge() {// 各ノードについて、接続先の番号を昇順ソート
 		for (int i = 0; i < N; i++) {
 			if (next[i].size() > 1) {
-				sort(next[i].begin(), next[i].end(), edgeClass_compare);// vectorのソートってこんな簡単なの！？
+				sort(next[i].begin(), next[i].end(), edgeClass_compare);
 			}
 		}
 	}
-	void activate(const char* nodeWeigh, const char* edgeWeigh, const char* subFlag, const char* directed) {// subFlagは入力から1を引くかどうか
-		cin >> N >> M;
-		activateMain(strcmp(nodeWeigh, "weighed") == 0, strcmp(edgeWeigh, "weighed") == 0, strcmp(subFlag, "subtract") == 0, strcmp(directed, "directed") == 0);
+
+	bool isTree() {// 木になっているかどうか幅優先探索で調べる
+		if (N <= 0 || M != N - 1) { return false; }
+
+		bool* visited = new bool[N];
+		for (int i = 0; i < N; i++) {
+			visited[i] = (i == 0);
+		}
+
+		queue<int> q; q.push(0);
+
+		while (q.size() > 0) {
+			int n = q.front(); q.pop();
+			visited[n] = true;
+
+			for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
+				if (visited[itr->y] == false) {
+					q.push(itr->y);
+				}
+			}
+		}
+
+		for (int i = 0; i < N; i++) {
+			if (visited[i] == false) { delete[] visited; return false; }
+		}
+
+		delete[] visited;
+		return true;
+	}
+
+	long* getDistanceFrom(int n) {// ダイクストラ法で始点nからの最短距離を得る
+		if (n < 0 || n >= N) { return NULL; }
+
+		long* buf = new long[N];
+		for (int i = 0; i < N; i++) {
+			buf[i] = 1000000000;
+		}
+
+		// 昇順に出力
+		// pair<重み, 番号>を並べておく
+		priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> q;
+
+		buf[n] = 0;
+		q.push(pair<int, int>(0, n));
+
+		while (q.empty() == false) {
+			pair<int, int> p = q.top(); q.pop();
+			int k = p.second;
+			if (p.first <= buf[k]) {
+				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
+					if (buf[itr->y] > buf[k] + itr->weight) {
+						buf[itr->y] = buf[k] + itr->weight;
+						q.push(pair<int, int>(buf[itr->y], itr->y));
+					}
+				}
+			}
+		}
+
+		return buf;
 	}
 
 	void debugCout() {// デバッグ出力用
 		cout << endl;
 		cout << "ノードの個数 = " << N << "個" << endl;
 		cout << "エッジの本数 = " << M << "本" << endl;
-		cout << "重み" << (nodeWeighedFlag ? "つき" : "なし") << "ノード " << "重み" << (edgeWeighedFlag ? "つき" : "なし") << "エッジ " << (directedFlag ? "有向" : "無向") << "グラフ" << endl;
 		cout << endl;
+
 		for (int i = 0; i < N; i++) {
-			if (nodeWeighedFlag) {
-				cout << "i = " << i << " (weigh = " << weigh[i] << "), 接続先 = ";
-			}
-			else {
-				cout << "i = " << i << ", 接続先 = ";
-			}
+			cout << "i = " << i << " (weight = " << weight[i] << "), 接続先 = ";
 			if (next[i].size() == 0) { cout << "なし" << endl; continue; }
 			auto itr = next[i].begin();
-			if (edgeWeighedFlag) {
-				cout << itr->y << "(" << itr->weigh << ")";
-			}
-			else {
-				cout << itr->y;
-			}
+			cout << itr->y << "(weight = " << itr->weight << ")";
 			itr++;
 
 			for (; itr != next[i].end(); itr++) {
-				if (edgeWeighedFlag) {
-					cout << ", " << itr->y << "(" << itr->weigh << ")";
-				}
-				else {
-					cout << ", " << itr->y;
-				}
+				cout << ", " << itr->y << "(weight = " << itr->weight << ")";
 			}
 			cout << endl;
 		}
 		cout << endl;
 	}
 
+	bool directedFlag;// 有向グラフかどうか
 	int N, M;
-	int* weigh;
-	vector<edgeClass>* next;
-	edgeClass* edge;
-	bool nodeWeighedFlag;// ノードに重みがついているか
-	bool edgeWeighedFlag;// エッジに重みがついているか
-	bool directedFlag;// 有向かどうか
-};
-class treeClass : public graphClass {// 木
-public:
-	treeClass() {
-		depth = NULL;
-	}
-	void activate(const char* nodeWeigh, const char* edgeWeigh, const char* subFlag, const char* directed) {
-		cin >> N, M = N - 1;
-		depth = new int[N];
-		for (int i = 0; i < N; i++) {
-			depth[i] = N + 1;
-		}
-		activateMain(strcmp(nodeWeigh, "weighed") == 0, strcmp(edgeWeigh, "weighed") == 0, strcmp(subFlag, "subtract") == 0, strcmp(directed, "directed") == 0);
-	}
-private:
-	void getDepth(int i, int d) {// 深さ優先探索で根からの距離を得る
-		depth[i] = d;
-		if (edgeWeighedFlag) {
-			for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-				if (depth[itr->y] > d + itr->weigh) {
-					getDepth(itr->y, d + itr->weigh);
-				}
-			}
-		}
-		else {
-			for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-				if (depth[itr->y] > d + 1) {
-					getDepth(itr->y, d + 1);
-				}
-			}
-		}
-	}
-public:
-	void setRoot(int n) {// 根を設定する。同時に根からの距離を得る。
-		getDepth(n, 0);
-	}
-	void debugCout() {// デバッグ出力用
-		cout << endl;
-		cout << "ノードの個数 = " << N << "個" << endl;
-		cout << "エッジの本数 = " << M << "本" << endl;
-		cout << "重み" << (nodeWeighedFlag ? "つき" : "なし") << "ノード " << "重み" << (edgeWeighedFlag ? "つき" : "なし") << "エッジ " << (directedFlag ? "有向" : "無向") << "グラフ" << endl;
-		cout << endl;
-		for (int i = 0; i < N; i++) {
-			if (nodeWeighedFlag) {
-				cout << "i = " << i << " (weigh = " << weigh[i] << "), 深さ = " << depth[i] << ", 接続先 = ";
-			}
-			else {
-				cout << "i = " << i << ", 深さ = " << depth[i] << ", 接続先 = ";
-			}
-			if (next[i].size() == 0) { cout << "なし" << endl; continue; }
-			auto itr = next[i].begin();
-			if (edgeWeighedFlag) {
-				cout << itr->y << "(" << itr->weigh << ")";
-			}
-			else {
-				cout << itr->y;
-			}
-			itr++;
-
-			for (; itr != next[i].end(); itr++) {
-				if (edgeWeighedFlag) {
-					cout << ", " << itr->y << "(" << itr->weigh << ")";
-				}
-				else {
-					cout << ", " << itr->y;
-				}
-			}
-			cout << endl;
-		}
-		cout << endl;
-	}
-
-	int* depth;//根からの深さ
+	int* weight;// ノードの重み
+	vector<edgeClass>* next;// 各ノードにおける辺
+	vector<edgeClass> edge;// エッジ
 };
 
-void bfs(graphClass & G, int root) {// 幅優先探索
+
+
+void bfs(graphClass& G, int root) {// 幅優先探索
 	int N = G.N;
 	bool* visited = new bool[N];
 	for (int i = 0; i < N; i++) {
@@ -217,12 +172,13 @@ void bfs(graphClass & G, int root) {// 幅優先探索
 		int n = q.front(); q.pop();
 		visited[n] = true;
 
-
-		//	ここに各ノードで行う処理を書く
-
+		// ここに各ノードで行う処理を書く
 
 		for (auto itr = G.next[n].begin(); itr != G.next[n].end(); itr++) {
-			if (visited[itr->y] == false) {
+
+			// ここに各エッジで行う処理を書く
+
+			if (visited[itr->y] == false) {// まだ訪れていなかったら
 				q.push(itr->y);
 			}
 		}
@@ -230,19 +186,17 @@ void bfs(graphClass & G, int root) {// 幅優先探索
 
 	delete[] visited;
 }
-void bfs(treeClass & T, int root) {
-	bfs((graphClass&)T, root);
-}
 bool* dfs_visited = NULL;
-void dfs_process_main(graphClass & G, int n) {
+void dfs_process_main(graphClass & G, int n) {// 深さ優先探索
 	dfs_visited[n] = true;
 
-
-	//	ここに各ノードで行う処理を書く
-
+	// ここに各ノードで行う処理を書く
 
 	for (auto itr = G.next[n].begin(); itr != G.next[n].end(); itr++) {
-		if (dfs_visited[itr->y] == false) {
+
+		// ここに各エッジで行う処理を書く
+
+		if (dfs_visited[itr->y] == false) {// まだ訪れていなかったら
 			dfs_process_main(G, itr->y);
 		}
 	}
@@ -252,12 +206,44 @@ void dfs(graphClass & G, int root) {// 深さ優先探索
 	dfs_visited = new bool[N];
 	for (int i = 0; i < N; i++) { dfs_visited[i] = false; }
 	dfs_process_main(G, 0);
-}
-void dfs(treeClass & T, int root) {
-	dfs((graphClass&)T, root);
+
+	delete[] dfs_visited;
+	dfs_visited = NULL;
 }
 
 
+//////		使用例
+int main() {
+	int N, M; cin >> N >> M;// ノード・エッジの数を受け取る
+
+	graphClass G; G.activate(N);// ノード数Nで初期化
+	for (int i = 0; i < M; i++) {
+		int a, b; cin >> a >> b;
+		a--; b--;
+		G.addEdge(a, b);// エッジの追加
+	}
+	G.sortEdge();// 各ノードにおけるエッジの順番を整理する
+
+	cout << endl; G.debugCout(); cout << endl;// デバッグ出力
+
+	long *buf = G.getDistanceFrom(0);// 0番ノードからの最短距離を受け取る
+	for (int i = 0; i < N; i++) {
+		cout << "i = " << i << ", distace = " << buf[i] << endl;// 最短距離を出力
+	}
+
+	delete[] buf;
+
+	return 0;
+}
+//////		検証用入力データ
+7 7
+1 3
+2 7
+3 4
+4 5
+4 6
+5 6
+6 7
 
 
 */
