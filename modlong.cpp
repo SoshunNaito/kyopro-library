@@ -67,7 +67,7 @@ public:
     }
     modlong inv() {
         if (*this == 1) return modlong(1);
-        if (*this == 0) cerr << "warning: dividebyzero!!!" << '\n';
+        if (*this == 0) cerr << "modlong warning: dividebyzero!!!" << '\n';
 
         modlong p, q = *this, m(0), n(1), r, c;
         p.val = mod;  // p=modとかくとp.val=mod%mod=0となってしまう
@@ -142,6 +142,7 @@ istream &operator>>(istream &is, modlong &in) {
 long invs[MAX], facts[MAX], finvs[MAX];
 long listlen = 0;  // invs, facts, finvsの配列長
 void computeAll(long n) {
+    if (n >= MAX) cerr << "modlong error: index out of range in computeAll" << '\n';
     long i;
     if (listlen == 0) {
         invs[1] = 1;
@@ -183,13 +184,9 @@ int main() {
     // d:値を初期化しない(この場合自動的に0が代入される)
     modlong a(2), b = 3, c = a, d;
 
-    // 出力したいときは普通にcoutが使えます
-    cout << a << ' ' << b << ' ' << c << ' ' << d << '\n';  // -> 2 3 2 0
-
     // 代入
     // 直接longを代入することもできます。
-    // また上でc =
-    // aとしましたが、aを変更してもcには反映されません(つまりいつも通り)
+    // また上でc = aとしましたが、aを変更してもcには反映されません(つまりいつも通り)
     a = 4, d = a;
     cout << a << ' ' << b << ' ' << c << ' ' << d << '\n';  // -> 4 3 2 4
 
@@ -232,8 +229,8 @@ int main() {
     // longへのキャスト
     long l = a.tol();
 
-    // cin coutもいけるで
+    // cinもいけるで
     modlong input;
     cin >> input;
-    cout << input.C(10) << '\n';
+    cout << input.C(10) << '\n'; // コンビネーション
 }
