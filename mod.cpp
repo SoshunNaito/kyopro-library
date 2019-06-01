@@ -47,6 +47,8 @@ int mod_div(int a, int b) {//	Š„‚èZ
 	return mod_multi(a, mod_inv(b));
 }
 int mod_pow(int x, int n) {//	—İæ(logNƒI[ƒ_[‚È‚Ì‚Å‘¬‚¢)
+	x = mod_adjust(x);
+	n = n % (mod - 1);
 	if (n < 0) {
 		return mod_pow(mod_div(1, x), -n);
 	}
@@ -54,7 +56,7 @@ int mod_pow(int x, int n) {//	—İæ(logNƒI[ƒ_[‚È‚Ì‚Å‘¬‚¢)
 		return 1;
 	}
 	if (n == 1) {
-		return x;
+		return mod_adjust(x);
 	}
 	if (n % 2 == 0) {
 		int k = mod_pow(x, n / 2);
@@ -72,6 +74,7 @@ int* factorial_inv = NULL;		//	ŠKæ‚Ì‹tŒ³
 //	ŠKæ‚ğ–‘O‚ÉŒvZ‚µ‚Ä‚¨‚­ŠÖ”B
 //	N‚Ímod_combination(n, r)‚ÅŒÄ‚Ño‚³‚ê‚¤‚éÅ‘å‚Ì”B
 void calc_factorial(int N) {////////////////////////// ‰‚ß‚É•K‚¸ŒÄ‚Ño‚·‚±‚ÆIII
+	N = min(mod - 1, N);
 	factorial = new int[N + 1];
 	factorial_inv = new int[N + 1];
 
@@ -84,6 +87,8 @@ void calc_factorial(int N) {////////////////////////// ‰‚ß‚É•K‚¸ŒÄ‚Ño‚·‚±‚ÆI
 }
 int mod_combination(int n, int r) {//	nCr	‚ğŒvZ‚·‚é
 	if (n < 0 || r < 0 || r > n) { return 0; }
+	if(n >= mod){ return 0; }
+	if(r < 0){ return 0; }
 	return mod_multi(factorial[n], mod_multi(factorial_inv[n - r], factorial_inv[r]));
 }
 
