@@ -5,7 +5,8 @@ using namespace std;
 ///////     longをmodの計算をするように拡張
 
 #define MOD (long)(1e9 + 7)
-#define MAX 1000000
+#define MAX 1000000 // factorialを最大でどこまで計算するか
+
 class modlong;
 void computeAll(long n);
 modlong modComb(long n, long k);

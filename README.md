@@ -12,4 +12,4 @@
 * qsort_wrap.cpp
   qsortをラッピングして使いやすくしたライブラリ。
 * modlong.cpp
-  機能的にはmod.cppと一緒だが、使用時にコードが簡潔になるかも...? (added on 6/1/2019 by shugo)
+  modの計算を勝手にやってくれる整数型。機能的にはmod.cppと一緒だが、コードが簡潔になるかも...? (added on 6/1/2019 by shugo)
