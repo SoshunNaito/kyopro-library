@@ -11,5 +11,5 @@
   modの演算をまとめたライブラリ。
 * qsort_wrap.cpp
   qsortをラッピングして使いやすくしたライブラリ。
-* modlong.cpp(added on 6/1/2019 by shugo)
-  機能的にはmod.cppと一緒だが、使用時にコードが簡潔になるかも...?
+* modlong.cpp
+  機能的にはmod.cppと一緒だが、使用時にコードが簡潔になるかも...? (added on 6/1/2019 by shugo)
