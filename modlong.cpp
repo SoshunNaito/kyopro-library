@@ -142,7 +142,8 @@ istream &operator>>(istream &is, modlong &in) {
 long invs[MAX], facts[MAX], finvs[MAX];
 long listlen = 0;  // invs, facts, finvsの配列長
 void computeAll(long n) {
-    if (n >= MAX) cerr << "modlong error: index out of range in computeAll" << '\n';
+    if (n >= MAX)
+        cerr << "modlong error: index out of range in computeAll" << '\n';
     long i;
     if (listlen == 0) {
         invs[1] = 1;
@@ -154,6 +155,7 @@ void computeAll(long n) {
     } else {
         i = listlen;
     }
+    if (n < 2) return;
     for (; i <= n; i++) {
         invs[i] = -invs[MOD % i] * (MOD / i) % MOD;
         facts[i] = facts[i - 1] * i % MOD;
@@ -186,7 +188,8 @@ int main() {
 
     // 代入
     // 直接longを代入することもできます。
-    // また上でc = aとしましたが、aを変更してもcには反映されません(つまりいつも通り)
+    // また上でc =
+    // aとしましたが、aを変更してもcには反映されません(つまりいつも通り)
     a = 4, d = a;
     cout << a << ' ' << b << ' ' << c << ' ' << d << '\n';  // -> 4 3 2 4
 
@@ -232,5 +235,5 @@ int main() {
     // cinもいけるで
     modlong input;
     cin >> input;
-    cout << input.C(10) << '\n'; // コンビネーション
+    cout << input.C(10) << '\n';  // コンビネーション
 }
