@@ -23,8 +23,7 @@ int mod_add(int a, int b) {//	‘«‚µŽZ
 	return (int)k;
 }
 int mod_sub(int a, int b) {//	ˆø‚«ŽZ
-	long long k = mod_adjust((long long)a); k += mod_adjust((long long)b); k %= mod;
-	return (int)k;
+	return mod_add(a, -b);
 }
 int mod_multi(int a, int b) {//	Š|‚¯ŽZ
 	long long k = mod_adjust((long long)a); k *= mod_adjust((long long)b); k %= mod;
