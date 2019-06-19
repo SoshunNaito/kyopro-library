@@ -129,6 +129,49 @@ public:
 		return buf;
 	}
 
+	long** getDistanceTable() {// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
+
+		long** buf = new long* [N];
+		for (int i = 0; i < N; i++) {
+			buf[i] = new long[N];
+			for (int j = 0; j < N; j++) {
+				buf[i][j] = 1000000000;
+			}
+			buf[i][i] = 0;
+		}
+
+		bool flag = true;
+		for (auto itr = edge.begin(); itr != edge.end(); itr++) {
+			if (itr->weight < 0) { flag = false; break; }
+		}
+		if (flag) {// 全て0以上だったらダイクストラ法を使う
+			for (int i = 0; i < N; i++) {
+				long* d = getDistanceFrom(i);
+				for (int j = 0; j < N; j++) {
+					buf[i][j] = d[j];
+				}
+				delete[] d;
+			}
+
+		}
+		else {// 負の重みが含まれていたらワーシャルフロイド法を使う
+			for (int i = 0; i < N; i++) {
+				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
+					buf[i][itr->y] = itr->weight;
+				}
+			}
+
+			for (int i = 0; i < N; i++) {
+				for (int j = 0; j < N; j++) {
+					for (int k = 0; k < N; k++) {
+						buf[j][k] = min(buf[j][k], buf[j][i] + buf[i][k]);
+					}
+				}
+			}
+		}
+		return buf;
+	}
+
 	void debugCout() {// デバッグ出力用
 		cout << endl;
 		cout << "ノードの個数 = " << N << "個" << endl;
@@ -187,7 +230,7 @@ void bfs(graphClass& G, int root) {// 幅優先探索
 	delete[] visited;
 }
 bool* dfs_visited = NULL;
-void dfs_process_main(graphClass & G, int n) {// 深さ優先探索
+void dfs_process_main(graphClass& G, int n) {// 深さ優先探索
 	dfs_visited[n] = true;
 
 	// ここに各ノードで行う処理を書く
@@ -201,7 +244,7 @@ void dfs_process_main(graphClass & G, int n) {// 深さ優先探索
 		}
 	}
 }
-void dfs(graphClass & G, int root) {// 深さ優先探索
+void dfs(graphClass& G, int root) {// 深さ優先探索
 	int N = G.N;
 	dfs_visited = new bool[N];
 	for (int i = 0; i < N; i++) { dfs_visited[i] = false; }
@@ -210,7 +253,6 @@ void dfs(graphClass & G, int root) {// 深さ優先探索
 	delete[] dfs_visited;
 	dfs_visited = NULL;
 }
-
 
 //////		使用例
 int main() {
@@ -226,9 +268,14 @@ int main() {
 
 	cout << endl; G.debugCout(); cout << endl;// デバッグ出力
 
-	long *buf = G.getDistanceFrom(0);// 0番ノードからの最短距離を受け取る
+	cout << "最短距離の表" << endl;
+	long** buf = G.getDistanceTable();// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
+
 	for (int i = 0; i < N; i++) {
-		cout << "i = " << i << ", distance = " << buf[i] << endl;// 最短距離を出力
+		for (int j = 0; j < N; j++) {
+			cout << buf[i][j] << " ";
+		}
+		cout << endl;
 	}
 
 	delete[] buf;
