@@ -98,35 +98,74 @@ public:
 		return true;
 	}
 
-	long* getDistanceFrom(int n) {// ダイクストラ法で始点nからの最短距離を得る
+	long* dijkstra(int n) {// ダイクストラ法で始点nからの最短距離を得る
 		if (n < 0 || n >= N) { return NULL; }
 
 		long* buf = new long[N];
 		for (int i = 0; i < N; i++) {
-			buf[i] = 1000000000;
+			buf[i] = 1001001001;
 		}
 
 		// 昇順に出力
 		// pair<重み, 番号>を並べておく
-		priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> q;
+		priority_queue<pair<long, int>, vector<pair<long, int>>, greater<pair<long, int>>> q;
 
 		buf[n] = 0;
-		q.push(pair<int, int>(0, n));
+		q.push(pair<long, int>(0, n));
 
 		while (q.empty() == false) {
-			pair<int, int> p = q.top(); q.pop();
+			pair<long, int> p = q.top(); q.pop();
 			int k = p.second;
 			if (p.first <= buf[k]) {
 				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
-					if (buf[itr->y] > buf[k] + itr->weight) {
-						buf[itr->y] = buf[k] + itr->weight;
-						q.push(pair<int, int>(buf[itr->y], itr->y));
+					if (buf[itr->y] > buf[k] + (long)itr->weight) {
+						buf[itr->y] = buf[k] + (long)itr->weight;
+						q.push(pair<long, int>(buf[itr->y], itr->y));
 					}
 				}
 			}
 		}
 
 		return buf;
+	}
+
+	long* bellmanFord(int n) {// ベルマンフォード法で始点nからの最短距離を得る
+		if (n < 0 || n >= N) { return NULL; }
+
+		long* buf = new long[N];
+		for (int i = 0; i < N; i++) {
+			buf[i] = 1001001001;
+		}
+		buf[n] = 0;
+		for (int i = 0; i < N; i++) {
+			for (auto itr = edge.begin(); itr != edge.end(); itr++) {
+				if (buf[itr->y] > buf[itr->x] + (long)(itr->weight)) {
+					buf[itr->y] = buf[itr->x] + (long)(itr->weight);
+					if (i == N - 1) {
+						return NULL;
+					}
+				}
+			}
+		}
+		return buf;
+	}
+
+	long* getDistanceFrom(int n) {
+		if (n < 0 || n >= N) { return NULL; }
+
+		bool negativeFlag = false;
+		for (auto itr = edge.begin(); itr != edge.end(); itr++) {
+			if (itr->weight < 0) {
+				negativeFlag = true;
+				break;
+			}
+		}
+		if (negativeFlag) {// 負の重みがあればベルマンフォード法
+			return bellmanFord(n);
+		}
+		else {// 全て非負ならダイクストラ法
+			return dijkstra(n);
+		}
 	}
 
 	long** getDistanceTable() {// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
@@ -259,6 +298,8 @@ int main() {
 	int N, M; cin >> N >> M;// ノード・エッジの数を受け取る
 
 	graphClass G; G.activate(N);// ノード数Nで初期化
+	// G.activate(N, true); で有向グラフに。
+
 	for (int i = 0; i < M; i++) {
 		int a, b; cin >> a >> b;
 		a--; b--;
