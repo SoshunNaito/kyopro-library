@@ -1,4 +1,7 @@
 /*
+using namespace std;
+typedef long long ll;
+
 /////////////         qsort‚Ìƒ‰ƒbƒsƒ“ƒO
 
 int qsort_int_compare_ascend(const void *a, const void *b) {
@@ -13,36 +16,36 @@ void ascendOrder(int size, int *array) {//¸‡
 void descendOrder(int size, int *array) {//~‡
 	qsort(array, size, sizeof(int), qsort_int_compare_descend);
 }
-int qsort_long_compare_ascend(const void *a, const void *b) {//longŒ^
-	long c = *(long*)a - *(long*)b;
+int qsort_long_compare_ascend(const void *a, const void *b) {//llŒ^
+	ll c = *(ll*)a - *(ll*)b;
 	if (c > 0) { return 1; }
 	else if (c < 0) { return -1; }
 	return 0;
 }
-int qsort_long_compare_descend(const void *a, const void *b) {//longŒ^
-	long c = *(long*)b - *(long*)a;
+int qsort_long_compare_descend(const void *a, const void *b) {//llŒ^
+	ll c = *(ll*)b - *(ll*)a;
 	if (c > 0) { return 1; }
 	else if (c < 0) { return -1; }
 	return 0;
 }
-void ascendOrder(int size, long *array) {//¸‡
-	qsort(array, size, sizeof(long), qsort_long_compare_ascend);
+void ascendOrder(int size, ll *array) {//¸‡
+	qsort(array, size, sizeof(ll), qsort_long_compare_ascend);
 }
-void descendOrder(int size, long *array) {//~‡
-	qsort(array, size, sizeof(long), qsort_long_compare_descend);
+void descendOrder(int size, ll *array) {//~‡
+	qsort(array, size, sizeof(ll), qsort_long_compare_descend);
 }
 
 class pairClass { // ƒyƒA‚Ìƒ\[ƒg
 public:
 	pairClass() { key = 0, value = 0; }
-	long key, value;
+	ll key, value;
 };
 int qsort_int_compare_ascend(const void *a, const void *b) {//key‚ğŒ©”ä‚×‚é
-	long x = ((pairClass*)a)->key - ((pairClass*)b)->key;
+	ll x = ((pairClass*)a)->key - ((pairClass*)b)->key;
 	return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
 }
 int qsort_int_compare_descend(const void *a, const void *b) {//key‚ğŒ©”ä‚×‚é
-	long x = ((pairClass*)b)->key - ((pairClass*)a)->key;
+	ll x = ((pairClass*)b)->key - ((pairClass*)a)->key;
 	return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
 }
 void ascendOrder(int size, pairClass *array) {//¸‡

@@ -1,20 +1,6 @@
 /*
-
-#include <iostream>
-#include <algorithm>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <vector>
-#include <queue>
-
 using namespace std;
-
-#define arraySize(A) (sizeof(A)/sizeof(A[0]))
-
-
-
-
+typedef long long ll;
 
 /////////////         最大・最小
 
@@ -105,14 +91,14 @@ int main() {
 //    バラバラの要素を結合してグループにまとめる際に使える構造。
 //    グループ番号、要素数の取得が可能だが、グループに属する要素の列挙はO(N)かかる。
 
-class UnionFindClass {
+class unionFindClass {
 public:
-	UnionFindClass() {
+	unionFindClass() {
 		N = 0;
 		parent = NULL;
 		size = NULL;
 	}
-	~UnionFindClass() {
+	~unionFindClass() {
 		if (parent != NULL) {
 			delete[] parent;
 		}
@@ -174,7 +160,7 @@ public:
 int main() {
 	int N, M; cin >> N >> M;		// ノードの個数、エッジの本数を取得
 
-	UnionFindClass uf;				// クラスの作成
+	unionFindClass uf;				// クラスの作成
 	uf.activate(N);					// ノード数Nに初期化
 	
 	for (int i = 0; i < M; i++) {
@@ -205,15 +191,114 @@ int main() {
 
 
 
-/////////////         備忘録
+/////////////         xorで掃き出し法
+//		数の集合が与えられたとき、掃き出し法によって上三角行列の形で保持する。
+//		ある数がその集合の部分集合のxor和で表現できるかどうかの判定が高速にできる。
 
-優先度付きキューの構文
-	priority_queue<int> que; // 降順に出力
-	priority_queue<int, vector<int>, greater<int>> que; // 昇順に出力
+const int BITSIZE = 64; // 横幅のビット数
 
-	que.push(int n); で数字を追加
-	que.top(); で最大値/最小値を見る
-	que.pop(); で最大値/最小値を消去
-	que.size(); でサイズ取得
-	que.empty(); で空かどうかチェック
+class bitGreaterClass {// 降順
+public:
+	bool operator() (const bitset<BITSIZE>& left, const bitset<BITSIZE>& right) const {
+		return left.to_ullong() > right.to_ullong();
+	}
+};
+
+class bitMatrixClass {
+public:
+	bitMatrixClass() {
+		matrix.clear();
+		pivot.clear();
+	}
+
+	int getSize() {// 縦のサイズ取得
+		return matrix.size();
+	}
+
+	void add(bitset<BITSIZE> bit) {// 行の追加
+		bit = sweep(bit);
+
+		if (bit.any()) {
+			bitset<BITSIZE> p = bit;
+			{// 最上位ビットを取得
+				int n = 1;
+				for (int k = BITSIZE; k > 1; k=(k+1)/2) {
+					p |= (p >> n);
+					n *= 2;
+				}
+				p ^= (p >> 1);
+			}
+
+			auto itr = matrix.begin();
+			for (; itr != matrix.end(); itr++) {
+				if ((*itr & p).any()) {
+					bitset<BITSIZE> q = *itr ^ bit;
+					matrix.erase(itr);
+					itr = matrix.insert(q).first;
+				}
+			}
+
+			matrix.insert(bit);
+			pivot.insert(p);
+		}
+	}
+	void add(ll k) {
+		bitset<BITSIZE> bit = k;
+		add(bit);
+	}
+
+	bitset<BITSIZE> sweep(bitset<BITSIZE> bit) {// 掃き出し法で重複成分を消去
+		auto itr1 = matrix.begin();
+		auto itr2 = pivot.begin();
+		for (; itr1 != matrix.end(); itr1++) {
+			if ((bit & (*itr2)).any()) {
+				bit ^= *itr1;
+			}
+			itr2++;
+		}
+		return bit;
+	}
+	bitset<BITSIZE> sweep(ll k) {
+		bitset<BITSIZE> bit = k;
+		return sweep(bit);
+	}
+
+	void debugCout() {// デバッグ出力用
+		cout << endl;
+		cout << "縦 " << getSize() << " 行, 横 " << BITSIZE << " 列" << endl;
+		for (auto itr = matrix.begin(); itr != matrix.end(); itr++) {
+			cout << *itr << endl;
+		}
+		cout << endl;
+	}
+
+	//データ
+	set<bitset<BITSIZE>, bitGreaterClass> matrix;// 保持する行列
+	set<bitset<BITSIZE>, bitGreaterClass> pivot;// 最上位ビット
+};
+
+
+//////		使用例
+int main() {
+	bitMatrixClass bm;
+
+	int N; cin >> N;					// 行列に追加する要素の個数
+	for (int i = 0; i < N; i++) {
+		int a; cin >> a;
+		bm.add(a);						// 追加
+	}
+
+	bm.debugCout();
+
+	for (int k = 10; k <= 100; k+=10) {	// 追加した要素の組み合わせで表現できるときは0になる
+		cout << "k = " << k << ", sweep(k) = " << bm.sweep(k).to_ullong() << endl;
+	}
+
+	return 0;
+}
+//////		検証用入力データ
+5
+43 36 12 97 68
+
+
 */

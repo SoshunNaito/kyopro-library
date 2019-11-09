@@ -1,6 +1,47 @@
 /*
 
+#include <iostream>
+#include <algorithm>
+#include <iomanip>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <vector>
+#include <string>
+#include <queue>
+#include <deque>
+#include <list>
+#include <set>
+#include <map>
+#include <bitset>
+
+using namespace std;
+
+typedef long long ll;
+
+
+
+
+
+/////////////         小数の表示
+	double x = 1.0 / 7;
+	cout << fixed << setprecision(15) << x << endl;	// これで小数点以下15桁まで出力できる
+
+
+
+
+
 /////////////         STLの使い方メモ
+
+ソート
+	vector<int> v;	// 宣言
+	sort(v.begin(), v.end());	// 昇順ソート
+	sort(v.begin(), v.end(), greater<int>());	// 降順ソート
+
+
+
+
 
 可変長配列 vector
 	vector<int> v;	// 宣言
@@ -128,7 +169,7 @@
 
 	auto p = mp.insert(make_pair(int key, int value));		// データを追加する。pの第一成分はデータを指すイテレータ、第二成分は追加できたかのフラグ。
 	
-	auto itr = mp.find(int n);		// key = nとなるを検索し、見つかった要素を指すイテレータを返す。itr == st.end() のとき検索失敗。
+	auto itr = mp.find(int n);		// key = nとなるを検索し、見つかった要素を指すイテレータを返す。itr == mp.end() のとき検索失敗。
 	mp.erase(int n);				// key = nとなる要素を消去する。
 
 	auto itr = mp.lower_bound(int n);		// keyがn以上(以下)となる要素のうち、最も小さい(大きい)ものを指すイテレータを返す。
@@ -177,10 +218,21 @@
 	que.push(int n);	// 要素を追加する
 	que.top();			// 最大値(最小値)を見る
 	que.pop();			// 最大値(最小値)を消去する
-	
 
 
 
+
+
+ビット演算を高速にできる bitset
+	bitset<32> bset;
+
+	bset.any();			// 1が立っているビットがあればtrue
+	bset.all();			// 全て1ならばtrue
+	bset.none();		// 全て0ならばtrue
+
+	bset.count();		// 1が立っているフラグの個数を返す
+
+	bset.flip();		// ビットの順序を反転させる
 
 
 */

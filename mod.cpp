@@ -1,9 +1,12 @@
 /*
+using namespace std;
+typedef long long ll;
+
 /////////////         modÇÃåvéZ
 
 int mod = 1000000007;
 
-long long mod_adjust(long long a) {//	ó]ÇËÇÇ∆ÇÈ(0Å`mod-1Ç…í≤êÆÇ∑ÇÈ)
+ll mod_adjust(ll a) {//	ó]ÇËÇÇ∆ÇÈ(0Å`mod-1Ç…í≤êÆÇ∑ÇÈ)
 	if (a > mod) {
 		return a % mod;
 	}
@@ -15,7 +18,7 @@ long long mod_adjust(long long a) {//	ó]ÇËÇÇ∆ÇÈ(0Å`mod-1Ç…í≤êÆÇ∑ÇÈ)
 	return a;
 }
 int mod_add(int a, int b) {//	ë´ÇµéZ
-	long long k = mod_adjust((long long)a); k += mod_adjust((long long)b);
+	ll k = mod_adjust((ll)a); k += mod_adjust((ll)b);
 	k = mod_adjust(k);
 	return (int)k;
 }
@@ -23,16 +26,16 @@ int mod_sub(int a, int b) {//	à¯Ç´éZ
 	return mod_add(a, -b);
 }
 int mod_multi(int a, int b) {//	ä|ÇØéZ
-	long long k = mod_adjust((long long)a);
-	k *= mod_adjust((long long)b);
+	ll k = mod_adjust((ll)a);
+	k *= mod_adjust((ll)b);
 	k = mod_adjust(k);
 	return (int)k;
 }
 int mod_inv(int a) {//	ãtå≥
-	long k = (int)mod_adjust((long long)a);
+	ll k = (int)mod_adjust((ll)a);
 	if (k == 0) { return 0; }
 	if (k == 1) { return 1; }
-	long long p = mod, q = k, m = 0, n = 1, r, c;
+	ll p = mod, q = k, m = 0, n = 1, r, c;
 
 	while (q > 1) {
 		r = p % q;
@@ -46,7 +49,7 @@ int mod_div(int a, int b) {//	äÑÇËéZ
 	return mod_multi(a, mod_inv(b));
 }
 int mod_pow(int x, int n) {//	ó›èÊ(logNÉIÅ[É_Å[Ç»ÇÃÇ≈ë¨Ç¢)
-	x = (int)mod_adjust((long long)x);
+	x = (int)mod_adjust((ll)x);
 	n = n % (mod - 1);
 	if (n < 0) {
 		return mod_pow(mod_div(1, x), -n);
@@ -55,7 +58,7 @@ int mod_pow(int x, int n) {//	ó›èÊ(logNÉIÅ[É_Å[Ç»ÇÃÇ≈ë¨Ç¢)
 		return 1;
 	}
 	if (n == 1) {
-		return (int)mod_adjust((long long)x);
+		return (int)mod_adjust((ll)x);
 	}
 	if (n % 2 == 0) {
 		int k = mod_pow(x, n / 2);

@@ -1,4 +1,7 @@
 /*
+using namespace std;
+typedef long long ll;
+
 /////////////         UnionFind
 //    バラバラの要素を結合してグループにまとめる際に使える構造。
 //    グループ番号、要素数の取得が可能だが、グループに属する要素の列挙はO(N)かかる。
@@ -193,29 +196,29 @@ public:
 		return G;
 	}
 
-	long long* dijkstra(int n) {// ダイクストラ法で始点nからの最短距離を得る
+	ll* dijkstra(int n) {// ダイクストラ法で始点nからの最短距離を得る
 		if (n < 0 || n >= N) { return NULL; }
 
-		long long* buf = new long long[N];
+		ll* buf = new ll[N];
 		for (int i = 0; i < N; i++) {
 			buf[i] = 1001001001;
 		}
 
 		// 昇順に出力
 		// pair<重み, 番号>を並べておく
-		priority_queue<pair<long long, int>, vector<pair<long long, int>>, greater<pair<long long, int>>> q;
+		priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> q;
 
 		buf[n] = 0;
-		q.push(pair<long long, int>(0, n));
+		q.push(pair<ll, int>(0, n));
 
 		while (q.empty() == false) {
-			pair<long long, int> p = q.top(); q.pop();
+			pair<ll, int> p = q.top(); q.pop();
 			int k = p.second;
 			if (p.first <= buf[k]) {
 				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
-					if (buf[itr->y] > buf[k] + (long long)itr->weight) {
-						buf[itr->y] = buf[k] + (long long)itr->weight;
-						q.push(pair<long long, int>(buf[itr->y], itr->y));
+					if (buf[itr->y] > buf[k] + (ll)itr->weight) {
+						buf[itr->y] = buf[k] + (ll)itr->weight;
+						q.push(pair<ll, int>(buf[itr->y], itr->y));
 					}
 				}
 			}
@@ -224,18 +227,18 @@ public:
 		return buf;
 	}
 
-	long long* bellmanFord(int n) {// ベルマンフォード法で始点nからの最短距離を得る
+	ll* bellmanFord(int n) {// ベルマンフォード法で始点nからの最短距離を得る
 		if (n < 0 || n >= N) { return NULL; }
 
-		long long* buf = new long long[N];
+		ll* buf = new ll[N];
 		for (int i = 0; i < N; i++) {
 			buf[i] = 1001001001;
 		}
 		buf[n] = 0;
 		for (int i = 0; i < N; i++) {
 			for (auto itr = edge.begin(); itr != edge.end(); itr++) {
-				if (buf[itr->y] > buf[itr->x] + (long long)(itr->weight)) {
-					buf[itr->y] = buf[itr->x] + (long long)(itr->weight);
+				if (buf[itr->y] > buf[itr->x] + (ll)(itr->weight)) {
+					buf[itr->y] = buf[itr->x] + (ll)(itr->weight);
 					if (i == N - 1) {
 						return NULL;
 					}
@@ -245,7 +248,7 @@ public:
 		return buf;
 	}
 
-	long long* getDistanceFrom(int n) {
+	ll* getDistanceFrom(int n) {
 		if (n < 0 || n >= N) { return NULL; }
 
 		bool negativeFlag = false;
@@ -263,11 +266,11 @@ public:
 		}
 	}
 
-	long long** getDistanceTable() {// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
+	ll** getDistanceTable() {// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
 
-		long long** buf = new long long* [N];
+		ll** buf = new ll* [N];
 		for (int i = 0; i < N; i++) {
-			buf[i] = new long long[N];
+			buf[i] = new ll[N];
 			for (int j = 0; j < N; j++) {
 				buf[i][j] = 1000000000;
 			}
@@ -280,7 +283,7 @@ public:
 		}
 		if (flag) {// 全て0以上だったらダイクストラ法を使う
 			for (int i = 0; i < N; i++) {
-				long long* d = getDistanceFrom(i);
+				ll* d = getDistanceFrom(i);
 				for (int j = 0; j < N; j++) {
 					buf[i][j] = d[j];
 				}
@@ -411,7 +414,7 @@ int main() {
 	delete G1;
 
 	cout << "最短距離の表" << endl;
-	long long** buf = G.getDistanceTable();// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
+	ll** buf = G.getDistanceTable();// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
 
 	for (int i = 0; i < N; i++) {
 		for (int j = 0; j < N; j++) {
