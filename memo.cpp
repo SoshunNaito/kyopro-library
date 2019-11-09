@@ -1,29 +1,4 @@
 /*
-
-#include <iostream>
-#include <algorithm>
-#include <iomanip>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <vector>
-#include <string>
-#include <queue>
-#include <deque>
-#include <list>
-#include <set>
-#include <map>
-#include <bitset>
-
-using namespace std;
-
-typedef long long ll;
-
-
-
-
-
 /////////////         è¨êîÇÃï\é¶
 	double x = 1.0 / 7;
 	cout << fixed << setprecision(15) << x << endl;	// Ç±ÇÍÇ≈è¨êîì_à»â∫15åÖÇ‹Ç≈èoóÕÇ≈Ç´ÇÈ

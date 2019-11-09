@@ -1,7 +1,4 @@
 /*
-using namespace std;
-typedef long long ll;
-
 /////////////         最大・最小
 
 int arrayMax(int size, int *array, int *dest) {

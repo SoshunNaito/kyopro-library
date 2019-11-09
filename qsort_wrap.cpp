@@ -1,7 +1,4 @@
 /*
-using namespace std;
-typedef long long ll;
-
 /////////////         qsort‚Ìƒ‰ƒbƒsƒ“ƒO
 
 int qsort_int_compare_ascend(const void *a, const void *b) {

@@ -1,7 +1,4 @@
 /*
-using namespace std;
-typedef long long ll;
-
 /////////////         mod‚ÌŒvŽZ
 
 int mod = 1000000007;

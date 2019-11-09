@@ -1,7 +1,4 @@
 /*
-using namespace std;
-typedef long long ll;
-
 ///////////////   ƒZƒOƒƒ“ƒg–Ø
 const ll INF = (ll)1234567891011121314;
 

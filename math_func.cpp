@@ -1,7 +1,4 @@
 /*
-using namespace std;
-typedef long long ll;
-
 /////////////         ”Šw
 
 template <typename T>//	T‚Íint‚©ll
