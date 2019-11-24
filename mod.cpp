@@ -4,7 +4,7 @@
 int mod = 1000000007;
 
 ll mod_adjust(ll a) {//	—]‚è‚ð‚Æ‚é(0`mod-1‚É’²®‚·‚é)
-	if (a > mod) {
+	if (a >= mod) {
 		return a % mod;
 	}
 	if (a < 0) {
