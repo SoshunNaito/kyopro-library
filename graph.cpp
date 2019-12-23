@@ -73,34 +73,12 @@ public:
 
 /////////////		グラフを扱うクラス
 
-class edgeClass {// 辺のクラス
-public:
-	edgeClass() {
-		x = 0, y = 0, weight = 1;
-	}
-	void swap() {
-		int c = x;
-		x = y;
-		y = c;
-	}
-	int x, y, weight;
-};
-bool edgeClass_compare(const edgeClass& a, const edgeClass& b) {// keyを見比べる
-	if (a.x != b.x) { return a.x < b.x; }
-	return a.y < b.y;
-}
-bool edgeClass_compare_by_weight(const edgeClass& a, const edgeClass& b) {// weightを見比べる
-	if (a.weight != b.weight) { return a.weight < b.weight; }
-	if (a.x != b.x) { return a.x < b.x; }
-	return a.y < b.y;
-}
 class graphClass {// グラフ入力を受け取る
 public:
 	graphClass() {
 		N = 0;
 		M = 0;
 		next = NULL;
-		edge.clear();
 		weight = NULL;
 		directedFlag = false;
 	}
@@ -110,37 +88,54 @@ public:
 		N = n;
 		M = 0;
 		edge.clear();
+		edgeActiveFlag.clear();
+		edgeIndexTable.clear();
+
 		if (next != NULL) { delete[] next; }
 		if (weight != NULL) { delete[] weight; }
-		next = new vector<edgeClass>[N];
-		weight = new int[N];
+		next = new map<int, ll>[N];
+		weight = new ll[N];
 		for (int i = 0; i < N; i++) { weight[i] = 1; }
 	}
-	void setNodeWeight(int n, int weight) {// n番のノードの重みをweightに設定
+	void setNodeWeight(int n, ll weight) {// n番のノードの重みをweightに設定
 		this->weight[n] = weight;
 	}
-	void addEdge(int x, int y, int weight = 1) {// エッジ追加
-		edgeClass e;
-		e.x = x;
-		e.y = y;
-		e.weight = weight;
-
-		if (e.x < 0 || e.x >= N) { return; }
-
-		edge.push_back(e); M++;
-		next[e.x].push_back(e);
-
-		if (directedFlag == false) {
-			e.swap();
-			next[e.x].push_back(e);
+	int getEdgeIndex(int x, int y) {
+		if (edgeIndexTable.find({ x,y }) != edgeIndexTable.end()) {
+			return edgeIndexTable.find({ x,y })->second;
 		}
-
+		if (edgeIndexTable.find({ y,x }) != edgeIndexTable.end()) {
+			return edgeIndexTable.find({ y,x })->second;
+		}
+		return -1;
 	}
-	void sortEdge() {// 各ノードについて、接続先の番号を昇順ソート
-		for (int i = 0; i < N; i++) {
-			if (next[i].size() > 1) {
-				sort(next[i].begin(), next[i].end(), edgeClass_compare);
-			}
+	void addEdge(int x, int y, ll weight = 1) {// エッジ追加
+		edge.push_back({ {x,y}, weight });
+		edgeActiveFlag.push_back(true);
+
+		edgeIndexTable.insert({ { x,y }, M });
+
+		M++;
+
+		next[x].insert({ y, weight });
+		if (directedFlag == false) {
+			next[y].insert({ x, weight });
+		}
+	}
+	void removeEdge(int x, int y) {
+		int k = getEdgeIndex(x, y);
+		if (k == -1) { return; }
+
+		x = edge[k].first.first;
+		y = edge[k].first.second;
+
+		M--;
+		edgeActiveFlag[k] = false;
+		edgeIndexTable.erase({ x, y });
+
+		next[x].erase(next[x].find(y));
+		if (directedFlag == false) {
+			next[y].erase(next[y].find(x));
 		}
 	}
 
@@ -159,8 +154,8 @@ public:
 			visited[n] = true;
 
 			for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
-				if (visited[itr->y] == false) {
-					q.push(itr->y);
+				if (visited[itr->first] == false) {
+					q.push(itr->first);
 				}
 			}
 		}
@@ -177,16 +172,24 @@ public:
 		graphClass* G = new graphClass(); G->activate(N, directedFlag);
 		UnionFindClass uf; uf.activate(N);
 
-		vector<edgeClass> E;
-		for (auto itr = edge.begin(); itr != edge.end(); itr++) {
-			E.push_back(*itr);
+		vector<pair<ll, pair<int,int>>> E;
+		{
+			int i = 0;
+			for (auto itr = edge.begin(); itr != edge.end(); itr++, i++) {
+				if (edgeActiveFlag[i] == false) { continue; }
+				E.push_back({ itr->second, {itr->first.first, itr->first.second} });
+			}
 		}
-		sort(E.begin(), E.end(), edgeClass_compare_by_weight);
+
+		sort(E.begin(), E.end());
 
 		for (auto itr = E.begin(); itr != E.end(); itr++) {
-			if (uf.getParent(itr->x) != uf.getParent(itr->y)) {
-				G->addEdge(itr->x, itr->y, itr->weight);
-				uf.connect(itr->x, itr->y);
+			int x = itr->second.first, y = itr->second.second;
+			ll w = itr->first;
+
+			if (uf.getParent(x) != uf.getParent(y)) {
+				G->addEdge(x, y, w);
+				uf.connect(x, y);
 			}
 		}
 
@@ -198,24 +201,24 @@ public:
 
 		ll* buf = new ll[N];
 		for (int i = 0; i < N; i++) {
-			buf[i] = 1001001001;
+			buf[i] = 1LL << 60;
 		}
 
-		// 昇順に出力
 		// pair<重み, 番号>を並べておく
-		priority_queue<pair<ll, int>, vector<pair<ll, int>>, greater<pair<ll, int>>> q;
+		set<pair<ll, int>> st;
 
 		buf[n] = 0;
-		q.push(pair<ll, int>(0, n));
+		st.insert({ 0, n });
 
-		while (q.empty() == false) {
-			pair<ll, int> p = q.top(); q.pop();
+		while (st.empty() == false) {
+			pair<ll, int> p = *st.begin(); st.erase(st.begin());
 			int k = p.second;
+
 			if (p.first <= buf[k]) {
 				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
-					if (buf[itr->y] > buf[k] + (ll)itr->weight) {
-						buf[itr->y] = buf[k] + (ll)itr->weight;
-						q.push(pair<ll, int>(buf[itr->y], itr->y));
+					if (buf[itr->first] > buf[k] + itr->second) {
+						buf[itr->first] = buf[k] + itr->second;
+						st.insert({ buf[itr->first], itr->first });
 					}
 				}
 			}
@@ -229,13 +232,18 @@ public:
 
 		ll* buf = new ll[N];
 		for (int i = 0; i < N; i++) {
-			buf[i] = 1001001001;
+			buf[i] = 1LL << 60;
 		}
 		buf[n] = 0;
 		for (int i = 0; i < N; i++) {
-			for (auto itr = edge.begin(); itr != edge.end(); itr++) {
-				if (buf[itr->y] > buf[itr->x] + (ll)(itr->weight)) {
-					buf[itr->y] = buf[itr->x] + (ll)(itr->weight);
+			int j = 0;
+			for (auto itr = edge.begin(); itr != edge.end(); itr++, j++) {
+				if (edgeActiveFlag[j] == false) { continue; }
+				int x = itr->first.first, y = itr->first.second;
+				ll w = itr->second;
+
+				if (buf[y] > buf[x] + w) {
+					buf[y] = buf[x] + w;
 					if (i == N - 1) {
 						return NULL;
 					}
@@ -249,12 +257,17 @@ public:
 		if (n < 0 || n >= N) { return NULL; }
 
 		bool negativeFlag = false;
-		for (auto itr = edge.begin(); itr != edge.end(); itr++) {
-			if (itr->weight < 0) {
-				negativeFlag = true;
-				break;
+		{
+			int i = 0;
+			for (auto itr = edge.begin(); itr != edge.end(); itr++, i++) {
+				if (edgeActiveFlag[i] == false) { continue; }
+				if (itr->second < 0) {
+					negativeFlag = true;
+					break;
+				}
 			}
 		}
+
 		if (negativeFlag) {// 負の重みがあればベルマンフォード法
 			return bellmanFord(n);
 		}
@@ -265,19 +278,23 @@ public:
 
 	ll** getDistanceTable() {// 最短距離の表を受け取る。対角成分に非ゼロが含まれていたら、重み負の閉路が存在している。
 
-		ll** buf = new ll* [N];
+		ll** buf = new ll * [N];
 		for (int i = 0; i < N; i++) {
 			buf[i] = new ll[N];
 			for (int j = 0; j < N; j++) {
-				buf[i][j] = 1000000000;
+				buf[i][j] = 1LL << 60;
 			}
 			buf[i][i] = 0;
 		}
 
 		bool flag = true;
-		for (auto itr = edge.begin(); itr != edge.end(); itr++) {
-			if (itr->weight < 0) { flag = false; break; }
+		{
+			int i = 0;
+			for (auto itr = edge.begin(); itr != edge.end(); itr++, i++) {
+				if (itr->second < 0) { flag = false; break; }
+			}
 		}
+
 		if (flag) {// 全て0以上だったらダイクストラ法を使う
 			for (int i = 0; i < N; i++) {
 				ll* d = getDistanceFrom(i);
@@ -291,7 +308,7 @@ public:
 		else {// 負の重みが含まれていたらワーシャルフロイド法を使う
 			for (int i = 0; i < N; i++) {
 				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-					buf[i][itr->y] = itr->weight;
+					buf[i][itr->first] = itr->second;
 				}
 			}
 
@@ -316,11 +333,11 @@ public:
 			cout << "i = " << i << " (weight = " << weight[i] << "), 接続先 = ";
 			if (next[i].size() == 0) { cout << "なし" << endl; continue; }
 			auto itr = next[i].begin();
-			cout << itr->y << "(weight = " << itr->weight << ")";
+			cout << itr->first << "(weight = " << itr->second << ")";
 			itr++;
 
 			for (; itr != next[i].end(); itr++) {
-				cout << ", " << itr->y << "(weight = " << itr->weight << ")";
+				cout << ", " << itr->first << "(weight = " << itr->second << ")";
 			}
 			cout << endl;
 		}
@@ -329,12 +346,12 @@ public:
 
 	bool directedFlag;// 有向グラフかどうか
 	int N, M;
-	int* weight;// ノードの重み
-	vector<edgeClass>* next;// 各ノードにおける辺
-	vector<edgeClass> edge;// エッジ
+	ll* weight;// ノードの重み
+	map<int, ll>* next;// 各ノードにおける辺
+	vector<pair<pair<int,int>, ll>> edge;// エッジ
+	vector<bool> edgeActiveFlag;// エッジが有効かどうか(removeを呼ぶとfalseに)
+	map<pair<int, int>, int> edgeIndexTable;// つなぐ辺のペアから辺の番号を得る
 };
-
-
 
 void bfs(graphClass& G, int root) {// 幅優先探索
 	int N = G.N;
@@ -355,8 +372,8 @@ void bfs(graphClass& G, int root) {// 幅優先探索
 
 			// ここに各エッジで行う処理を書く
 
-			if (visited[itr->y] == false) {// まだ訪れていなかったら
-				q.push(itr->y);
+			if (visited[itr->first] == false) {// まだ訪れていなかったら
+				q.push(itr->first);
 			}
 		}
 	}
@@ -371,10 +388,10 @@ void dfs_process_main(graphClass& G, int n, int depth) {// 深さ優先探索
 
 		// ここに各エッジで行う処理を書く
 
-		if (dfs_visited[itr->y] == false) {// まだ訪れていなかったら
-			dfs_visited[itr->y] = true;
-			dfs_process_main(G, itr->y, depth + 1);
-			dfs_visited[itr->y] = false;
+		if (dfs_visited[itr->first] == false) {// まだ訪れていなかったら
+			dfs_visited[itr->first] = true;
+			dfs_process_main(G, itr->first, depth + 1);
+			dfs_visited[itr->first] = false;
 		}
 	}
 }
@@ -390,19 +407,23 @@ void dfs(graphClass& G, int root) {// 深さ優先探索
 	dfs_visited = NULL;
 }
 
-
 int main() {
 	int N, M; cin >> N >> M;// ノード・エッジの数を受け取る
 
-	graphClass G; G.activate(N);// ノード数Nで初期化
-	// G.activate(N, true); で有向グラフに。
+	graphClass G;
+	G.activate(N);// ノード数Nで初期化
+	// G.activate(N, true);// ノード数Nで初期化
 
 	for (int i = 0; i < M; i++) {
 		int a, b; cin >> a >> b;
 		a--; b--;
 		G.addEdge(a, b);// エッジの追加
 	}
-	G.sortEdge();// 各ノードにおけるエッジの順番を整理する
+
+	cout << endl; G.debugCout();// デバッグ出力
+
+	G.removeEdge(1, 3);
+	G.removeEdge(5, 0);
 
 	cout << endl; G.debugCout();// デバッグ出力
 
@@ -425,8 +446,11 @@ int main() {
 	return 0;
 }
 //////		検証用入力データ
-7 7
+7 10
 1 3
+1 5
+1 6
+2 4
 2 7
 3 4
 4 5
