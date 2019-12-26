@@ -105,6 +105,69 @@ private:
 	}
 };
 
+///////////////   BIT
+ll BIT_FUNCTION(ll a, ll b) {// ˜a‚ðŒvŽZ‚·‚éŠÖ”
+	return a + b;
+}
+ll BIT_INVERSE(ll a) {// ‹tŒ³(‚±‚±‚Å‚Í-1”{)‚ð‹‚ß‚éŠÖ”
+	return -a;
+}
+class BIT {// ¶’[‚©‚ç‚Ì˜a‚ÌŽæ“¾Aˆê“_XV‚ªO(logN)‚Å‚Å‚«‚éƒf[ƒ^\‘¢B
+public:
+	BIT() {
+		N = 0;
+		bit = NULL;
+	}
+	~BIT() {
+		if (bit != NULL) {
+			delete[] bit;
+		}
+	}
+	void activate(int N, ll init = 0) {
+		if (bit != NULL) { delete[] bit; }
+		bit = new ll[N];
+		this->N = N;
+		for (int i = 0; i < N; i++) {
+			bit[i] = 0;
+		}
+		for (int i = 0; i < N; i++) {
+			add(i, init);
+		}
+	}
+	ll sum(int i) {// i”Ô–Ú‚Ü‚Å‚Ì˜a‚ðŒvŽZ‚·‚é
+		if (i < 0) { return 0; }
+		if (i >= N) { return bit[N - 1]; }
+
+		i++;
+		ll s = 0;
+		while (i > 0) {
+			s = BIT_FUNCTION(s, bit[i - 1]);
+			i -= i & -i;
+		}
+		return s;
+	}
+	void add(int i, int x) {// i”Ô–Ú‚Ì—v‘f‚Éx‚ð‰Á‚¦‚é
+		if (i < 0 || i >= N) {
+			return;
+		}
+		i++;
+		while (i <= N) {
+			bit[i - 1] = BIT_FUNCTION(bit[i - 1], x);
+			i += i & -i;
+		}
+	}
+	ll get(int i) {
+		return BIT_FUNCTION(sum(i), BIT_INVERSE(sum(i - 1)));
+	}
+	void set(int i, int x) {// i”Ô–Ú‚Ì—v‘f‚ðx‚É•ÏX‚·‚é
+		ll diff = BIT_FUNCTION(x, BIT_INVERSE(get(i)));
+		add(i, diff);
+	}
+
+	int N;
+	ll* bit;
+};
+
 int main() {
 	int N, M; cin >> N >> M;
 	SegmentTree ST; ST.activate(N, INF);
