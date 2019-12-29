@@ -1,6 +1,8 @@
 # kyopro-library
 競プロで使える自作ライブラリをまとめておいておく場所
 
+* convolution.cpp
+  FFTを使った畳み込みを行う。引数が整数型の時は誤差無し畳み込みを行う(ので定数倍が遅い)。
 * func.cpp
   最大最小、二分探索、Union-Find、xor掃き出し法が入ってるライブラリ。
 * graph.cpp
