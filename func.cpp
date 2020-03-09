@@ -1,29 +1,109 @@
 /*
-/////////////         最大・最小
-
-int arrayMax(int size, int *array, int *dest) {
-	if (size <= 0 || array == NULL) { return -1; }
-	int p = 0;
-	for (int i = 0; i < size; i++) {
-		if (array[p] < array[i]) { p = i; }
+/////////	分数どうしを比べる
+class fractionCompareType {// a / bを比較する
+public:
+	fractionCompareType(ll A, ll B) {
+		set(A, B);
 	}
-	if (dest != NULL) { *dest = array[p]; }
-	return p;
-}
-int arrayMin(int size, int *array, int *dest) {
-	if (size <= 0 || array == NULL) { return -1; }
-	int p = 0;
-	for (int i = 0; i < size; i++) {
-		if (array[p] > array[i]) { p = i; }
+	inline void set(ll A, ll B) {
+		a = A, b = B;
+		flush();
 	}
-	if (dest != NULL) { *dest = array[p]; }
-	return p;
+	inline double getDouble() const {
+		return (double)a / b;
+	}
+	inline void flush() {
+		assert(b != 0);
+		if (b < 0) { a *= -1, b *= -1; }
+		if (a == 0) { b = 1; return; }
+
+		{
+			ll p = abs(a);
+			ll q = b;
+			ll c;
+			if (p < q) { c = p; p = q; q = c; }
+			while (1) {
+				p %= q;
+				if (p == 0) {
+					if (q > 1) {
+						a /= q; b /= q;
+					}
+					return;
+				}
+				c = p; p = q; q = c;
+			}
+		}
+	}
+	inline bool operator ==(const fractionCompareType& another) const {
+		return (a == another.a) & (b == another.b);
+	}
+	inline bool operator !=(const fractionCompareType& another) const {
+		return !(*this == another);
+	}
+	inline bool operator <(const fractionCompareType& another) const {
+		ll p1 = a, q1 = b;
+		ll p2 = another.a, q2 = another.b;
+
+		if (p1 < 0 && p2 >= 0) {
+			return true;
+		}
+		if (p1 >= 0 && p2 < 0) {
+			return false;
+		}
+		if (p1 < 0) {
+			p1 *= -1;
+			p2 *= -1;
+			ll c = p1; p1 = p2; p2 = c;
+			c = q1; q1 = q2; q2 = c;
+		}
+
+		while (1) {
+			ll c1 = p1 / q1;
+			ll c2 = p2 / q2;
+			if (c1 != c2) {
+				return c1 < c2;
+			}
+			p1 -= q1 * c1;
+			p2 -= q2 * c2;
+			if (p1 == 0 || p2 == 0) { return p1 < p2; }
+
+			c1 = p1; p1 = q2; q2 = c1;
+			c2 = p2; p2 = q1; q1 = c2;
+		}
+	};
+	inline bool operator >=(const fractionCompareType& another) const {
+		return !(*this < another);
+	}
+	inline bool operator >(const fractionCompareType& another) const {
+		if (*this == another) { return false; }
+		if (*this < another) { return false; }
+		return true;
+	};
+	inline bool operator <=(const fractionCompareType& another) const {
+		return !(*this > another);
+	}
+
+	ll a, b;
+};
+
+
+//////   使用例
+int main() {
+	set<fractionCompareType> st;
+	for (int i = -10; i < 10; i++) {
+		for (int j = -10; j < 10; j++) {
+			if (j == 0) { break; }
+			st.insert({ i,j }); // 分数の値が同じ場合は1個にまとまる
+		}
+	}
+
+	for (auto itr = st.begin(); itr != st.end(); itr++) {
+		// 既約分数が出力される
+		cout << itr->a << " / " << itr->b << " (" << itr->getDouble() << ")" << endl;
+	}
+
+	return 0;
 }
-
-
-
-
-
 
 
 //////////一般化した二分探索

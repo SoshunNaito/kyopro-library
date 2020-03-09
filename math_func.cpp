@@ -1,32 +1,22 @@
 /*
 /////////////         ”Šw
 
-template <typename T>//	T‚Íint‚©ll
-T gcd(T a, T b) {//	Å‘åŒö–ñ”
-	if (a < 0) { a = -a; }
-	if (b < 0) { b = -b; }
+ll gcd(ll a, ll b) {// Å‘åŒö–ñ”
+	a = abs(a);
+	b = abs(b);
 	if (a == 0) { return b; }
 	if (b == 0) { return a; }
-	if (a < b) {
-		return gcd(a, b % a);
+
+	ll c;
+	if (a < b) { c = a; a = b; b = c; }
+	while (1) {
+		a %= b;
+		if (a == 0) { return b; }
+		c = a; a = b; b = c;
 	}
-	return gcd(b, a % b);
-}
-template <typename T>//	T‚Íint‚©ll
-T gcd(int size, T* a) {//	”z—ñ‚ÌÅ‘åŒö–ñ”
-	if (size <= 0 || a == NULL) { return 0; }
-	T c = abs(a[0]);
-	for (int i = 1; i < size; i++) {
-		c = gcd(c, a[i]);
-		if (c == 1) {
-			break;
-		}
-	}
-	return c;
 }
 
-template <typename T>//	T‚Íint‚©ll
-ll lcm(T a, T b) {//	Å¬Œö”{”
+inline ll lcm(ll a, ll b) {// Å¬Œö”{”
 	if (a < 0) { a = -a; }
 	if (b < 0) { b = -b; }
 	if (a == 0) { return b; }
@@ -36,21 +26,11 @@ ll lcm(T a, T b) {//	Å¬Œö”{”
 	x *= b;
 	return x;
 }
-template <typename T>//	T‚Íint‚©ll
-ll lcm(int size, T* a) {//	”z—ñ‚ÌÅ¬Œö”{”
-	if (size <= 0 || a == NULL) { return 0; }
-	ll c = abs(a[0]);
-	for (int i = 1; i < size; i++) {
-		c = lcm(c, (ll)a[i]);
-	}
-	return c;
-}
 
-int mod_multi(int a, int b, int n) {
-	ll A = a; ll B = b;
-	return (int)((A * B) % n);
+ll mod_multi(ll a, ll b, ll n) {
+	return (A * B) % n;
 }
-int mod_pow(int a, int d, int n) {
+ll mod_pow(ll a, ll d, ll n) {
 	a = a % n;
 
 	if (d == 0) {
@@ -60,25 +40,25 @@ int mod_pow(int a, int d, int n) {
 		return a;
 	}
 	if (d % 2 == 0) {
-		int k = mod_pow(a, d / 2, n);
+		ll k = mod_pow(a, d / 2, n);
 		return mod_multi(k, k, n);
 	}
 	else {
-		int k = mod_pow(a, d / 2, n);
-		int b = mod_multi(k, k, n);
+		ll k = mod_pow(a, d / 2, n);
+		ll b = mod_multi(k, k, n);
 
 		return mod_multi(b, a, n);
 	}
 }
-bool miller_rabin(int n, int a) {
-	int d = n - 1;
+bool miller_rabin(ll n, ll a) {
+	ll d = n - 1;
 	int p = 0;
 
 	while (d % 2 == 0) {
 		p++;
 		d /= 2;
 	}
-	int m = mod_pow(a, d, n);
+	ll m = mod_pow(a, d, n);
 	if (m == 1) {
 		return true;
 	}
@@ -90,30 +70,32 @@ bool miller_rabin(int n, int a) {
 	}
 	return false;
 }
-bool isPrime(int n) {
+bool isPrime(ll n) {// ‘f””»’è
 	if (n <= 1) {
 		return false;
 	}
 
-	int primes[] = {
+	ll primes[] = {
 		2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113
 	};
 
-	if (n < 120) {
-		for (int i = 0; i < 30; i++) {
-			if (n == primes[i]) { return true; }
-		}
-		return false;
-	}
 	for (int i = 0; i < 30; i++) {
 		if (n % primes[i] == 0) { return false; }
+	}
+	if (n < 120) {
+		return false;
 	}
 
 	int k = 0;
 	if (n < 2047) { k = 1; }
 	else if (n < 1373653) { k = 2; }
 	else if (n < 25326001) { k = 3; }
-	else { k = 4; }
+	else if (n < 3215031751LL) { k = 4; }
+	else if (n < 2152302898747LL) { k = 5; }
+	else if (n < 3474749660383LL) { k = 6; }
+	else if (n < 341550071728321LL) { k = 7; }
+	else if (n < 3825123056546413051LL) { k = 9; }
+	else { k = 12; }
 
 	for (int i = 0; i < k; i++) {
 		if (miller_rabin(n, primes[i]) == false) {
@@ -123,11 +105,43 @@ bool isPrime(int n) {
 
 	return true;
 }
+void getPrimeTable(int N, vector<ll>& dest) {// ‘f”‚Ì•\‚ğ“¾‚é
+	N = N / 2;
+	vector<bool> flag(N, true);
+	flag[0] = false;
 
-//	(ll)ãn ‚ğŒvZ‚·‚éBO(logn)‚ÅŒvZ‚·‚é‚©‚ç‘¬‚¢‚æ
-//	À‚Í double sqrt(double x) ‚ğg‚Á‚½•û‚ª‚‘¬‚¾‚¯‚ÇAŒvZŒë·‚ª‹C‚É‚È‚é...
-//	l_sqrt‚Í®”‚Ì‚Ü‚ÜŒvZ‚µ‚Ä‚é‚©‚çŒë·‚ÌS”z‚Í‚È‚¢‚æ
-ll l_sqrt(ll n) {
+	for (int i = 1; i < N; i++) {
+		if (flag[i] == true) {
+			int n = 1 + i * 2;
+			for (int j = i + n; j < N; j += n) {
+				flag[j] = false;
+			}
+		}
+	}
+	dest = { 2 };
+	for (int i = 0; i < N; i++) {
+		if (flag[i] == true) {
+			dest.push_back(1 + i * 2);
+		}
+	}
+}
+int* euler_phi_table(int n) {
+	if (n < 0) { return NULL; }
+	int* a = new int[n + 1];
+	for (int i = 0; i <= n; i++) {
+		a[i] = i;
+	}
+	for (int i = 2; i <= n; i++) {
+		if (a[i] == i) {
+			for (int j = i; j <= n; j += i) {
+				a[j] = a[j] / i * (i - 1);
+			}
+		}
+	}
+	return a;
+}
+
+inline ll l_sqrt(ll n) {//	Œë·–³‚µãn‚ğŒvZ‚·‚é
 	if (n <= 0) { return 0; }
 
 	if (n > 256) {
@@ -136,13 +150,13 @@ ll l_sqrt(ll n) {
 		return k;
 	}
 	else {
-		for (int i = 16; i >= 1; i--) {
+		for (ll i = 16; i >= 1; i--) {
 			if (i * i <= n) { return i; }
 		}
 	}
 	return 0;
 }
-class primeFactorClass {// ‘fˆö”•ª‰ğ‚ğ‚·‚é
+class primeFactorClass {//	‘fˆö”•ª‰ğ‚ğ‚·‚é
 public:
 	primeFactorClass() {
 		factorNum = 0;
@@ -151,9 +165,9 @@ public:
 		reset();
 	}
 
-	int factorNum;// ‘fˆö”‚ÌŒÂ”
+	ll factorNum;// ‘fˆö”‚ÌŒÂ”
 	vector<ll> prime;// ‘fˆö”
-	vector<int> degree;// Ÿ”
+	vector<ll> degree;// Ÿ”
 
 	void factorize(ll n) {// ‘fˆö”•ª‰ğ
 		reset();
@@ -163,7 +177,7 @@ public:
 		if (n % 2 == 0) {
 			factorNum++;
 			prime.push_back(2);
-			int count = 0;
+			ll count = 0;
 			while (n % 2 == 0) { count++; n /= 2; }
 			degree.push_back(count);
 		}
@@ -173,7 +187,7 @@ public:
 			if (n % i == 0) {
 				factorNum++;
 				prime.push_back(i);
-				int count = 0;
+				ll count = 0;
 				while (n % i == 0) { count++; n /= i; }
 				degree.push_back(count);
 				M = l_sqrt(n) + 1;
