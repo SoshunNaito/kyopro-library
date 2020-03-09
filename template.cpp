@@ -12,7 +12,9 @@
 #include <deque>
 #include <list>
 #include <set>
+#include <unordered_set>
 #include <map>
+#include <unordered_map>
 #include <bitset>
 #include <random>
 #include <complex>
@@ -22,13 +24,13 @@ using namespace std;
 typedef long long ll;
 
 template<typename T>
-inline bool chmin(T& x, T& a) {
+inline bool chmin(T& x, T a) {
 	if (x >= a) { x = a; return true; }
 	return false;
 }
 
 template<typename T>
-inline bool chmax(T& x, T& a) {
+inline bool chmax(T& x, T a) {
 	if (x <= a) { x = a; return true; }
 	return false;
 }
