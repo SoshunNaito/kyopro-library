@@ -150,7 +150,7 @@ private:
 			}
 		}
 	}
-	inline void fft(int N, int n, complex<double>* src, complex<double>* dest, bool inverse = false) {//	複素数を使ったFFTを行う
+	inline void fft(int N, int n, complex<ll>* src, complex<ll>* dest, bool inverse = false) {//	複素数を使ったFFTを行う
 		{
 			int* rate = new int[n];
 			int k = N / 2;
@@ -170,7 +170,7 @@ private:
 			delete[] rate;
 		}
 
-		complex<double>* base = new complex<double>[n];
+		complex<ll>* base = new complex<ll>[n];
 		if (inverse == true) {
 			for (int i = 0; i < n; i++) {
 				int j = 1 << (i + 1);
@@ -190,7 +190,7 @@ private:
 			int M = N / m;
 			int h = m / 2;
 			int L = 0, R = h, block, i;
-			complex<double> p, q, w;
+			complex<ll> p, q, w;
 			for (block = 0; block < M; block++) {
 				w = 1.0;
 
@@ -398,14 +398,14 @@ public:
 
 		return make_pair(r, size * c);
 	}
-	inline pair<double*, int> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
+	inline pair<ll*, int> convolution(vector<ll>& v1, vector<ll>& v2) {//	(誤差あるかもしれない)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
 		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
 
 		if (s1 == 0 || s2 == 0) {
-			return make_pair((double*)NULL, 0);
+			return make_pair((ll*)NULL, 0);
 		}
 
 		int size = getConvolutionSize(s1, s2);
@@ -413,19 +413,19 @@ public:
 		int b = (s2 + size - 1) / size;
 		int c = a + b;
 
-		complex<double>* temp = new complex<double>[size * c];
-		double* ans = new double[size * c];
+		complex<ll>* temp = new complex<ll>[size * c];
+		ll* ans = new ll[size * c];
 		for (int i = 0; i < (size * c); i++) {
 			temp[i] = 0;
 			ans[i] = 0;
 		}
 
-		vector<complex<double>*> x_src, y_src;
-		vector<complex<double>*> x_dest, y_dest;
+		vector<complex<ll>*> x_src, y_src;
+		vector<complex<ll>*> x_dest, y_dest;
 
 		for (int i = 0; i < a; i++) {
-			complex<double>* buf = new complex<double>[size * 2];
-			complex<double>* dest = new complex<double>[size * 2];
+			complex<ll>* buf = new complex<ll>[size * 2];
+			complex<ll>* dest = new complex<ll>[size * 2];
 			int k, l;
 			for (int j = 0; j < size; j++) {
 				k = j + size;
@@ -443,8 +443,8 @@ public:
 		}
 
 		for (int i = 0; i < b; i++) {
-			complex<double>* buf = new complex<double>[size * 2];
-			complex<double>* dest = new complex<double>[size * 2];
+			complex<ll>* buf = new complex<ll>[size * 2];
+			complex<ll>* dest = new complex<ll>[size * 2];
 			int k, l;
 			for (int j = 0; j < size; j++) {
 				k = j + size;
@@ -473,10 +473,10 @@ public:
 			fft(N, n, y_src[i], y_dest[i]);
 		}
 
-		vector<complex<double>*> z_src, z_dest;
+		vector<complex<ll>*> z_src, z_dest;
 		for (int i = 0; i < c - 1; i++) {
-			complex<double>* src = new complex<double>[N];
-			complex<double>* dest = new complex<double>[N];
+			complex<ll>* src = new complex<ll>[N];
+			complex<ll>* dest = new complex<ll>[N];
 
 			for (int j = 0; j < N; j++) {
 				src[j] = 0;
@@ -531,18 +531,18 @@ int main(){
 	const bool USE_COMPLEX = false;
 
 	if (USE_COMPLEX) {//	複素数を使った畳み込み
-		vector<double> A, B;
+		vector<ll> A, B;
 
 		for (int i = 0; i < N; i++) {
-			double a; cin >> a;
+			ll a; cin >> a;
 			A.push_back(a);
 		}
 		for (int i = 0; i < M; i++) {
-			double b; cin >> b;
+			ll b; cin >> b;
 			B.push_back(b);
 		}
 
-		pair<double*, int> p = C.convolution(A, B);//	畳み込み
+		pair<ll*, int> p = C.convolution(A, B);//	畳み込み
 		int size = p.second;//	サイズ取得(2^nじゃない場合もある)
 
 		cout << "size = " << size << endl;

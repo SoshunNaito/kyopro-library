@@ -1,19 +1,21 @@
 /*
 
+///////////////// 各種設定 /////////////////
+
+#define USE_SUBTREE_SIZE
 // #define USE_LCA
+
 class TreeClass {// 木の入力を受け取る
 public:
 	TreeClass() {
 		N = 0, root = 0;
 		next = NULL;
-		weight = NULL;
 #ifdef USE_LCA
 		parent = NULL;
 #endif
 	}
 	TreeClass(int _N, int _root = 0) {
 		next = NULL;
-		weight = NULL;
 #ifdef USE_LCA
 		parent = NULL;
 #endif
@@ -21,7 +23,6 @@ public:
 	}
 
 	~TreeClass() {
-		if (weight != NULL) { delete[] weight; }
 		if (next != NULL) { delete[] next; }
 #ifdef USE_LCA
 		if (parent != NULL) { delete[] parent; }
@@ -32,18 +33,21 @@ public:
 		N = n;
 		root = _root;
 
-		if (weight != NULL) { delete[] weight; }
-		weight = new ll[N];
+		weight.resize(N);
 		for (int i = 0; i < N; i++) { weight[i] = 1; }
 
+		back.resize(N);
 		if (next != NULL) { delete[] next; }
 		next = new unordered_map<int, int>[N];
 		edge.clear();
 
 		depth.clear();
 		depth.resize(N);
-		distanceTable.clear();
-		distanceTable.resize(N);
+
+#ifdef USE_SUBTREE_SIZE
+		subtree_size.clear();
+		subtree_size.resize(N);
+#endif
 #ifdef USE_LCA
 		if (parent != NULL) { delete[] parent; }
 		parent = new vector<int>[N];
@@ -68,12 +72,17 @@ public:
 		next[y].insert({ x, M });
 
 		if (edge.size() == N - 1) {
-			processDepth();
+			initProcess();
+
+#ifdef USE_SUBTREE_SIZE
+			dfs(&TreeClass::dfs_processSubtreeSize);
+#endif
 #ifdef USE_LCA
-			processDoubling();
+			bfs(&TreeClass::bfs_processDoubling);
 #endif
 		}
 	}
+
 #ifdef USE_LCA
 	inline int LCA(int a, int b) {
 		int d = min(depth[a], depth[b]);
@@ -111,11 +120,13 @@ public:
 	inline void changeRoot(int r, bool ProcessDoublingFlag = true) {
 		assert(r >= 0 && r < N);
 		root = r;
-		processDepth();
+		initProcess();
+
+#ifdef USE_SUBTREE_SIZE
+		dfs(&TreeClass::dfs_processSubtreeSize);
+#endif
 #ifdef USE_LCA
-		if (ProcessDoublingFlag) {
-			processDoubling();
-		}
+		if (ProcessDoublingFlag)  bfs(&TreeClass::bfs_processDoubling);
 #endif
 	}
 
@@ -137,112 +148,170 @@ public:
 		}
 		int i = k2;
 		if (d2 % 2 == 0) {
-			while (depth[i] > d2 / 2) {
-				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-					int j = itr->first;
-
-					if (depth[i] > depth[j]) {
-						if (depth[j] == d2 / 2) {
-							changeRoot(r0, false);
-							return { d2, { j } };
-						}
-						i = j;
-						break;
-					}
+			while (1) {
+				int j = back[i].first;
+				if (depth[j] == d2 / 2) {
+					changeRoot(r0, false);
+					return { d2, { j } };
 				}
+				i = j;
 			}
 		}
 		else {
 			while (1) {
-				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-					int j = itr->first;
-
-					if (depth[i] > depth[j]) {
-						if (depth[j] == d2 / 2) {
-							changeRoot(r0, false);
-							return { d2, { i, j } };
-						}
-						i = j;
-						break;
-					}
+				int j = back[i].first;
+				if (depth[j] == d2 / 2) {
+					changeRoot(r0, false);
+					return { d2, { i, j } };
 				}
+				i = j;
 			}
 		}
 		return { d2, { root } };
 	}
-
 private:
-	inline void processDepth() {// bfsで根からの深さと距離を得る
+	inline void initProcess() {// bfsの順番を取得すると同時に、根からの深さを得る。
 		for (int i = 0; i < N; i++) {
 			depth[i] = -1;
+			back[i] = { -1, -1 };
 		}
 
-		queue<pair<int, pair<int, ll>>> q; q.push({ root, {0, 0} });
+		queue<pair<int, int>> q; q.push({ root, 0 });
+
+		bfs_order.clear();
 
 		while (q.size() > 0) {
 			int n = q.front().first;
-			int d = q.front().second.first;
-			ll w = q.front().second.second;
+			int d = q.front().second;
 			q.pop();
 
-			depth[n] = d;
-			weight[n] = w;
+			bfs_order.push_back(n);
 
+			depth[n] = d;
+
+			auto _erase = next[n].end();// 根に向かう辺
 			for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
 				int m = itr->first;
 
 				if (depth[m] == -1) {
-					q.push({ m, {d + 1, w + edge[itr->second].second} });
+					q.push({ m, d + 1 });
 				}
+				else {
+					_erase = itr;
+					back[n] = { itr->first, itr->second };
+				}
+			}
+			if (_erase != next[n].end()) {
+				next[n].erase(_erase);
 			}
 		}
 	}
+	inline void dfs(void (TreeClass::* dfs_process)(int n)) {
+		for (int i = N - 1; i >= 0; i--) {
+			(this->*dfs_process)(bfs_order[i]);
+		}
+	}
+	inline void bfs(void (TreeClass::* bfs_process)(int n)) {
+		for (int i = 0; i < N; i++) {
+			(this->*bfs_process)(bfs_order[i]);
+		}
+	}
+
+#ifdef USE_SUBTREE_SIZE
+	void dfs_processSubtreeSize(int n) {// 部分木のサイズを得る
+		subtree_size[n] = 1;
+		for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
+			subtree_size[n] += subtree_size[itr->first];
+		}
+	}
+#endif
 #ifdef USE_LCA
-	inline void processDoubling() {// ダブリング
-		for (int i = 0; i < N; i++) {
-			parent[i].clear();
-		}
-		for (int i = 0; i < N - 1; i++) {
-			int a = edge[i].first.first;
-			int b = edge[i].first.second;
+	void bfs_processDoubling(int n) {// ダブリング
+		parent[n].clear();
+		if (n == root) { return; }
 
-			if (depth[a] < depth[b]) {
-				parent[b].push_back(a);
-			}
-			else {
-				parent[a].push_back(b);
-			}
-		}
-		queue<int> q;
-		for (int i = 0; i < N; i++) {
-			if (i == root) { continue; }
-			q.push(i);
-		}
-		while (q.size() > 0) {
-			int n = q.front();
-			q.pop();
-
-			int k = parent[n].size() - 1;
-			if (depth[n] >= (1 << (k + 1))) {
-				parent[n].push_back(parent[parent[n][k]][k]);
-				q.push(n);
-			}
+		parent[n].push_back(back[n].first);
+		for (int k = 0; depth[n] >= (1 << (k + 1)); k++) {
+			parent[n].push_back(parent[parent[n][k]][k]);
 		}
 	}
 #endif
 
 public:
 	int N, root;
-	ll* weight;// ノードの重み
-	unordered_map<int, int>* next;// 各ノードからの行き先とエッジ番号
+	vector<ll> weight;// ノードの重み
+
 	vector<pair<pair<int, int>, ll>> edge;// エッジ(頂点ペアと重み)
 
+	vector<pair<int, int>> back;// 根に近いノードと、エッジ番号
+	unordered_map<int, int>* next;// 各ノードからの行き先とエッジ番号
+
 	vector<int> depth;// 根から見た深さ
-	vector<ll> distanceTable;// 根からの距離
+	vector<int> bfs_order;// bfsの際に訪れる順番(dfsは逆順)
+
+#ifdef USE_SUBTREE_SIZE
+	vector<int> subtree_size;// 部分木のサイズ
+#endif
 #ifdef USE_LCA
 	vector<int>* parent;//1番目、2番目、4番目、8番目...の親
 #endif
 };
+
+inline void dfs(TreeClass &T, void (*dfs_process)(TreeClass& T, int n)) {
+	for (int i = T.N - 1; i >= 0; i--) {
+		dfs_process(T, T.bfs_order[i]);
+	}
+}
+inline void bfs(TreeClass& T, void (*bfs_process)(TreeClass& T, int n)) {
+	for (int i = 0; i < T.N; i++) {
+		bfs_process(T, T.bfs_order[i]);
+	}
+}
+
+class TreeDP_data {
+public:
+	TreeDP_data() {
+
+	}
+	void init(TreeClass& T, int _n) {
+		n = _n;
+	}
+	inline void forward_ans_tie(TreeClass& T, TreeDP_data& Other) {
+		int m = Other.n;
+
+		////////////以下に処理を書く////////////
+	}
+	inline void backward_ans_tie(TreeClass& T, TreeDP_data& Other) {
+		int m = Other.n;
+
+		////////////以下に処理を書く////////////
+	}
+
+	int n;
+	ll forward_ans, ans;
+};
+vector<TreeDP_data> DP_data;
+
+void TreeDP_forwardProcess(TreeClass &T, int n) {
+	for (auto itr = T.next[n].begin(); itr != T.next[n].end(); itr++) {
+		int m = itr->first;
+		DP_data[n].forward_ans_tie(T, DP_data[m]);
+	}
+}
+void TreeDP_backwardProcess(TreeClass& T, int n) {
+	if (n == T.root) { DP_data[n].ans = DP_data[n].forward_ans; return; }
+	int m = T.back[n].first;
+	DP_data[n].backward_ans_tie(T, DP_data[m]);
+}
+inline void TreeDP(TreeClass &T) {
+	DP_data.clear();
+	DP_data.resize(T.N);
+	for (int i = 0; i < T.N; i++) {
+		DP_data[i].init(T, i);
+	}
+	dfs(T, TreeDP_forwardProcess);
+	bfs(T, TreeDP_backwardProcess);
+}
 
 class TreeHash {// 根付き木のハッシュを計算する
 public:

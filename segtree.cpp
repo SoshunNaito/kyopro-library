@@ -178,10 +178,10 @@ private:
 
 		int c = (l + r) / 2;
 
-		if (c <= a) { return query(a, b, k * 2 + 2, c, r); }
 		if (b <= c) { return query(a, b, k * 2 + 1, l, c); }
+		if (c <= a) { return query(a, b, k * 2 + 2, c, r); }
 
-		return segtree_data_merge(query(a, b, k * 2 + 2, c, r), query(a, b, k * 2 + 1, l, c));
+		return segtree_data_merge(query(a, b, k * 2 + 1, l, c), query(a, b, k * 2 + 2, c, r));
 	}
 };
 

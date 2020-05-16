@@ -5,19 +5,26 @@
 #define NAISETSU_EN	Inscribed_Circle
 #define GAISETSU_EN	Circumscribed_Circle
 #define SUI_SIN		Orthocenter
+#define TOTSHU_HO	convex_hull
 
-const double EPS = 0.000000000001;
+const ll EPS = 0.000000000001;
+unsigned int SEED() {
+	random_device rd;
+	return rd();
+}
+mt19937_64 MT(SEED());
+
 class Vec2 {// ì_
 public:
-	double x, y;
+	ll x, y;
 
 	Vec2() {
 		x = 0, y = 0;
 	}
-	Vec2(double X, double Y) {
+	Vec2(ll X, ll Y) {
 		x = X, y = Y;
 	}
-	Vec2(pair<double, double> p) {
+	Vec2(pair<ll, ll> p) {
 		x = p.first, y = p.second;
 	}
 	Vec2(const Vec2& other) {
@@ -42,11 +49,11 @@ public:
 		x -= other.x, y -= other.y;
 		return *this;
 	}
-	inline Vec2& operator *= (double param) {
+	inline Vec2& operator *= (ll param) {
 		x *= param, y *= param;
 		return *this;
 	}
-	inline Vec2& operator /= (double param) {
+	inline Vec2& operator /= (ll param) {
 		if (abs(param) < EPS) {
 			x = 0, y = 0;
 		}
@@ -63,28 +70,28 @@ public:
 		Vec2 v = *this; v -= other;
 		return v;
 	}
-	inline Vec2 operator * (double param) {
+	inline Vec2 operator * (ll param) {
 		Vec2 v = *this; v *= param;
 		return v;
 	}
-	inline Vec2 operator / (double param) {
+	inline Vec2 operator / (ll param) {
 		Vec2 v = *this; v /= param;
 		return v;
 	}
-	inline double length2() const {
+	inline ll length2() const {
 		return x * x + y * y;
 	}
-	inline double length() const {
+	inline ll length() const {
 		return sqrt(length2());
 	}
-	inline double dot(Vec2 other) const {
+	inline ll dot(Vec2 other) const {
 		return x * other.x + y * other.y;
 	}
-	inline double cross(Vec2 other) const {
+	inline ll cross(Vec2 other) const {
 		return x * other.y - y * other.x;
 	}
 	inline void normalize() {
-		double rate = length();
+		ll rate = length();
 		if (rate < EPS) {
 			x = 1, y = 0;
 		}
@@ -94,20 +101,20 @@ public:
 			y *= rate;
 		}
 	}
-	inline void rotate(double angle_deg) {
-		double c = cos(angle_deg * 0.01745329251994329547);
-		double s = sin(angle_deg * 0.01745329251994329547);
-		double X = x * c - y * s;
-		double Y = x * s + y * c;
+	inline void rotate(ll angle_deg) {
+		ll c = cos(angle_deg * 0.01745329251994329547);
+		ll s = sin(angle_deg * 0.01745329251994329547);
+		ll X = x * c - y * s;
+		ll Y = x * s + y * c;
 		x = X, y = Y;
 	}
-	inline double rad() const {
+	inline ll rad() const {
 		if (abs(x) < EPS && abs(y) < EPS) {
 			return 0;
 		}
 		return atan2(x, y);
 	}
-	double deg() const {
+	ll deg() const {
 		return rad() * 57.29577951308232286;
 	}
 };
@@ -124,10 +131,10 @@ public:
 		norm.y = B.x;
 		dot = norm.dot(A);
 	}
-	Line(Vec2 n, double d) {
+	Line(Vec2 n, ll d) {
 		norm = n;
 		dot = d;
-		double k = 1.0 / n.length();
+		ll k = 1.0 / n.length();
 		norm *= k;
 		dot *= k;
 	}
@@ -141,7 +148,7 @@ public:
 
 	// ñ@ê¸ÉxÉNÉgÉãÇ∆ÅAì‡êœÇÃílÇéùÇ¡ÇƒÇ®Ç≠
 	Vec2 norm;
-	double dot;
+	ll dot;
 };
 inline Line Vertical_Bisector(Vec2 A, Vec2 B) {// êÇíºìÒìôï™ê¸
 	A = (A + B) / 2;
@@ -172,15 +179,15 @@ public:
 		}
 	}
 	inline int inside(Vec2 P) {
-		double d1 = (B - A).dot(P - A);
-		double d2 = (C - B).dot(P - B);
-		double d3 = (A - C).dot(P - C);
+		ll d1 = (B - A).dot(P - A);
+		ll d2 = (C - B).dot(P - B);
+		ll d3 = (A - C).dot(P - C);
 
 		if (d1 > EPS || d2 > EPS || d3 > EPS) { return 0; }
 		if (abs(d1) < EPS || abs(d2) < EPS || abs(d3) < EPS) { return 2; }
 		return 1;
 	}
-	inline double area() {
+	inline ll area() {
 		return (B - A).cross(C - A) / 2;
 	}
 
@@ -198,7 +205,7 @@ public:
 	Circle() {
 		C = Vec2(0, 0); r2 = 0;
 	}
-	Circle(Vec2 center, double r) {
+	Circle(Vec2 center, ll r) {
 		C = center; r2 = r * r;
 	}
 	Circle(const Circle& other) {
@@ -209,13 +216,13 @@ public:
 		return *this;
 	}
 	inline int inside(Vec2 P) {
-		double d = (P - C).length2() - r2;
+		ll d = (P - C).length2() - r2;
 		if (d > EPS) { return 0; }
 		if (d > -EPS) { return 2; }
 		return 1;
 	}
 	Vec2 C;
-	double r2;
+	ll r2;
 };
 inline Circle Circumscribed_Circle(Vec2 A, Vec2 B, Vec2 C) {// äOê⁄â~
 	Circle D;
@@ -224,15 +231,15 @@ inline Circle Circumscribed_Circle(Vec2 A, Vec2 B, Vec2 C) {// äOê⁄â~
 	if (C == A) { D.C = (B + C) / 2; D.r2 = (B - D.C).length2(); return D; }
 	if (A == B) { D.C = (C + A) / 2; D.r2 = (C - D.C).length2(); return D; }
 
-	double a = (B - C).length2();
-	double b = (C - A).length2();
-	double c = (A - B).length2();
+	ll a = (B - C).length2();
+	ll b = (C - A).length2();
+	ll c = (A - B).length2();
 
-	double s = a + b + c;
+	ll s = a + b + c;
 
-	double p = (s - a * 2) * a;
-	double q = (s - b * 2) * b;
-	double r = (s - c * 2) * c;
+	ll p = (s - a * 2) * a;
+	ll q = (s - b * 2) * b;
+	ll r = (s - c * 2) * c;
 
 	s = p + q + r;
 	p /= s; q /= s; r /= s;
@@ -245,10 +252,10 @@ inline Circle Circumscribed_Circle(Triangle T) {// äOê⁄â~
 	return Circumscribed_Circle(T.A, T.B, T.C);
 }
 inline Circle Inscribed_Circle(Triangle T) {// ì‡ê⁄â~
-	double a = (T.B - T.C).length();
-	double b = (T.C - T.A).length();
-	double c = (T.A - T.B).length();
-	double r = 1.0 / (a + b + c);
+	ll a = (T.B - T.C).length();
+	ll b = (T.C - T.A).length();
+	ll c = (T.A - T.B).length();
+	ll r = 1.0 / (a + b + c);
 
 	return Circle((T.A * a + T.B * b + T.C * c) * r, T.area() * 2 * r);
 }
@@ -266,7 +273,7 @@ inline pair<Vec2*, int> convex_hull(vector<Vec2>& P) {// ì ïÔ
 	int N = (int)P.size();
 	vector<Vec2> v;
 	{
-		vector<pair<pair<double, double>, int>> temp;
+		vector<pair<pair<ll, ll>, int>> temp;
 		for (int i = 0; i < N; i++) {
 			temp.push_back({ {P[i].x, P[i].y}, i });
 		}
@@ -311,7 +318,12 @@ inline pair<Vec2*, int> convex_hull(vector<Vec2>& P) {// ì ïÔ
 	}
 	return p;
 }
-Circle SmallestEnclosingDisk(Vec2* P, int N) {// ç≈è¨ïÔä‹â~
+Circle SmallestEnclosingDisk(Vec2* P0, int N) {// ç≈è¨ïÔä‹â~
+	vector<Vec2> P;
+	for (int i = 0; i < N; i++) {
+		P.push_back(P0[i]);
+	}
+	shuffle(P.begin(), P.end(), MT);
 	vector<pair<int, pair<int, vector<int>>>> stack;
 	{
 		vector<int> v;

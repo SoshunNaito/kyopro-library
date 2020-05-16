@@ -22,6 +22,7 @@
 
 using namespace std;
 typedef long long ll;
+#define endl '\n'
 
 template<typename T>
 inline bool chmin(T& x, T a) {
@@ -36,6 +37,10 @@ inline bool chmax(T& x, T a) {
 }
 
 int main() {
+	ios::sync_with_stdio(false);
+	std::cin.tie(0);
+
+
 
 	return 0;
 }

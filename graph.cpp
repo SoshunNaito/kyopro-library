@@ -29,7 +29,7 @@ public:
 		}
 	}
 
-	int getParent(int x) {// グループの親の番号を得る
+	inline int getParent(int x) {// グループの親の番号を得る
 		if (parent[x] == -1) {
 			return x;
 		}
@@ -39,11 +39,11 @@ public:
 			return y;
 		}
 	}
-	int getSize(int x) {// 自分が属するグループのサイズを得る
+	inline int getSize(int x) {// 自分が属するグループのサイズを得る
 		x = getParent(x);
 		return size[x];
 	}
-	bool connect(int x, int y) {// 二つの要素を結ぶ。２グループ間を繋いだ場合trueを返す
+	inline bool connect(int x, int y) {// 二つの要素を結ぶ。２グループ間を繋いだ場合trueを返す
 		x = getParent(x);
 		y = getParent(y);
 		if (x == y) { return false; }
@@ -73,9 +73,9 @@ public:
 
 /////////////		グラフを扱うクラス
 
-class graphClass {// グラフ入力を受け取る
+class GraphClass {// グラフ入力を受け取る
 public:
-	graphClass() {
+	GraphClass() {
 		N = 0;
 		M = 0;
 		next = NULL;
@@ -89,40 +89,37 @@ public:
 		M = 0;
 		edge.clear();
 		edgeActiveFlag.clear();
-		edgeIndexTable.clear();
 
 		if (next != NULL) { delete[] next; }
 		if (weight != NULL) { delete[] weight; }
-		next = new map<int, ll>[N];
+		next = new unordered_map<int, int>[N];
 		weight = new ll[N];
 		for (int i = 0; i < N; i++) { weight[i] = 1; }
 	}
-	void setNodeWeight(int n, ll weight) {// n番のノードの重みをweightに設定
+	inline void setNodeWeight(int n, ll weight) {// n番のノードの重みをweightに設定
 		this->weight[n] = weight;
 	}
-	int getEdgeIndex(int x, int y) {
-		if (edgeIndexTable.find({ x,y }) != edgeIndexTable.end()) {
-			return edgeIndexTable.find({ x,y })->second;
-		}
-		if (edgeIndexTable.find({ y,x }) != edgeIndexTable.end()) {
-			return edgeIndexTable.find({ y,x })->second;
+
+	inline int getEdgeIndex(int x, int y) {// 辺の組からエッジの番号を得る
+		if (next[x].find(y) != next[x].end()) {
+			return next[x][y];
 		}
 		return -1;
 	}
-	void addEdge(int x, int y, ll weight = 1) {// エッジ追加
+	inline void addEdge(int x, int y, ll weight = 1) {// エッジ追加
+		int n = (int)edge.size();
 		edge.push_back({ {x,y}, weight });
 		edgeActiveFlag.push_back(true);
 
-		edgeIndexTable.insert({ { x,y }, M });
+		next[x].insert({ y, n });
+
+		if (directedFlag == false) {
+			next[y].insert({ x, n });
+		}
 
 		M++;
-
-		next[x].insert({ y, weight });
-		if (directedFlag == false) {
-			next[y].insert({ x, weight });
-		}
 	}
-	void removeEdge(int x, int y) {
+	inline void removeEdge(int x, int y) {// エッジ除去
 		int k = getEdgeIndex(x, y);
 		if (k == -1) { return; }
 
@@ -131,9 +128,9 @@ public:
 
 		M--;
 		edgeActiveFlag[k] = false;
-		edgeIndexTable.erase({ x, y });
 
 		next[x].erase(next[x].find(y));
+
 		if (directedFlag == false) {
 			next[y].erase(next[y].find(x));
 		}
@@ -168,11 +165,11 @@ public:
 		return true;
 	}
 
-	graphClass* kruskal() {// クラスカル法によって最小全域木を構成する
-		graphClass* G = new graphClass(); G->activate(N, directedFlag);
+	GraphClass* kruskal() {// クラスカル法によって最小全域木を構成する
+		GraphClass* G = new GraphClass(); G->activate(N, directedFlag);
 		UnionFindClass uf; uf.activate(N);
 
-		vector<pair<ll, pair<int,int>>> E;
+		vector<pair<ll, pair<int, int>>> E;
 		{
 			int i = 0;
 			for (auto itr = edge.begin(); itr != edge.end(); itr++, i++) {
@@ -216,8 +213,8 @@ public:
 
 			if (p.first <= buf[k]) {
 				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
-					if (buf[itr->first] > buf[k] + itr->second) {
-						buf[itr->first] = buf[k] + itr->second;
+					if (buf[itr->first] > buf[k] + edge[itr->second].second) {
+						buf[itr->first] = buf[k] + edge[itr->second].second;
 						st.insert({ buf[itr->first], itr->first });
 					}
 				}
@@ -253,7 +250,7 @@ public:
 		return buf;
 	}
 
-	ll* getDistanceFrom(int n) {
+	ll* getDistanceFrom(int n) {// ある点からの最短距離の表を受け取る。
 		if (n < 0 || n >= N) { return NULL; }
 
 		bool negativeFlag = false;
@@ -308,7 +305,7 @@ public:
 		else {// 負の重みが含まれていたらワーシャルフロイド法を使う
 			for (int i = 0; i < N; i++) {
 				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-					buf[i][itr->first] = itr->second;
+					buf[i][itr->first] = edge[itr->second].second;
 				}
 			}
 
@@ -347,13 +344,12 @@ public:
 	bool directedFlag;// 有向グラフかどうか
 	int N, M;
 	ll* weight;// ノードの重み
-	map<int, ll>* next;// 各ノードにおける辺
-	vector<pair<pair<int,int>, ll>> edge;// エッジ
+	unordered_map<int, int>* next;// 各ノードからの行き先とエッジ番号
+	vector<pair<pair<int, int>, ll>> edge;// エッジ(頂点ペアと重み)
 	vector<bool> edgeActiveFlag;// エッジが有効かどうか(removeを呼ぶとfalseに)
-	map<pair<int, int>, int> edgeIndexTable;// つなぐ辺のペアから辺の番号を得る
 };
 
-void bfs(graphClass& G, int root) {// 幅優先探索
+void bfs(GraphClass& G, int root) {// 幅優先探索
 	int N = G.N;
 	bool* visited = new bool[N];
 	for (int i = 0; i < N; i++) {
@@ -381,7 +377,7 @@ void bfs(graphClass& G, int root) {// 幅優先探索
 	delete[] visited;
 }
 bool* dfs_visited = NULL;
-void dfs_process_main(graphClass& G, int n, int depth) {// 深さ優先探索
+void dfs_process_main(GraphClass& G, int n, int depth) {// 深さ優先探索
 	// ここに各ノードで行う処理を書く
 
 	for (auto itr = G.next[n].begin(); itr != G.next[n].end(); itr++) {
@@ -395,7 +391,7 @@ void dfs_process_main(graphClass& G, int n, int depth) {// 深さ優先探索
 		}
 	}
 }
-void dfs(graphClass& G, int root) {// 深さ優先探索
+void dfs(GraphClass& G, int root) {// 深さ優先探索
 	int N = G.N;
 	dfs_visited = new bool[N];
 	for (int i = 0; i < N; i++) { dfs_visited[i] = false; }
@@ -410,7 +406,7 @@ void dfs(graphClass& G, int root) {// 深さ優先探索
 int main() {
 	int N, M; cin >> N >> M;// ノード・エッジの数を受け取る
 
-	graphClass G;
+	GraphClass G;
 	G.activate(N);// ノード数Nで初期化
 	// G.activate(N, true);// ノード数Nで初期化
 
@@ -427,7 +423,7 @@ int main() {
 
 	cout << endl; G.debugCout();// デバッグ出力
 
-	graphClass* G1 = G.kruskal();// 最小全域木
+	GraphClass* G1 = G.kruskal();// 最小全域木
 	G1->debugCout(); cout << endl;
 	delete G1;
 

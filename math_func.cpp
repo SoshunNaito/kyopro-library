@@ -28,7 +28,7 @@ inline ll lcm(ll a, ll b) {// ç≈è¨åˆî{êî
 }
 
 ll mod_multi(ll a, ll b, ll n) {
-	return (A * B) % n;
+	return (a * b) % n;
 }
 ll mod_pow(ll a, ll d, ll n) {
 	a = a % n;
