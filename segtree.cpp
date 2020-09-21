@@ -64,7 +64,7 @@ inline ll segtree_lazy_apply(ll a, ll x) {// aに演算子xを適用する
 }
 #endif
 #ifdef SEGTREE_LAZY_MAX
-const ll segtree_lazy_init = 0;
+const ll segtree_lazy_init = -INF;
 inline ll segtree_lazy_merge(ll a, ll b) {// 演算子aとbのマージ
 	return max(a, b);
 }
@@ -192,7 +192,7 @@ public:
 		N = (int)v.size();
 		size = 1; while (size < N) size *= 2;
 		node.resize(2 * size - 1, segtree_data_init);
-		lazy.resize(2 * size - 1, 0);
+		lazy.resize(2 * size - 1, segtree_lazy_init);
 
 		for (int i = 0; i < N; i++) node[i + size - 1] = v[i];
 		for (int i = size - 2; i >= 0; i--) node[i] = segtree_data_merge(node[i * 2 + 1], node[i * 2 + 2]);
@@ -201,7 +201,7 @@ public:
 		N = N0;
 		size = 1; while (size < N) size *= 2;
 		node.resize(2 * size - 1, segtree_data_init);
-		lazy.resize(2 * size - 1, 0);
+		lazy.resize(2 * size - 1, segtree_lazy_init);
 
 		for (int i = 0; i < N; i++) node[i + size - 1] = init;
 		for (int i = size - 2; i >= 0; i--) node[i] = segtree_data_merge(node[i * 2 + 1], node[i * 2 + 2]);
@@ -230,7 +230,7 @@ public:
 	}
 private:
 	inline void eval(int k, int l, int r) {
-		if (lazy[k] != 0) {
+		if (lazy[k] != segtree_lazy_init) {
 			node[k] = segtree_lazy_apply(node[k], lazy[k]);
 			if (r - l > 1) {
 				lazy[2 * k + 1] = segtree_lazy_merge(lazy[2 * k + 1], segtree_lazy_divide(lazy[k]));
