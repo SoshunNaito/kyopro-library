@@ -1,15 +1,13 @@
 /*
 class convolutionClass {// 畳み込み
 private:
-	const ll prime0 = 167772161;
-	const ll prime1 = 469762049;
-	const ll prime2 = 1224736769;
-	ll temporary_ans[3] = {//	garnerに入れる用のバッファ
+	const ll primes[3] = { 167772161, 469762049, 1224736769 };
+	ll temporary_ans[3] = {// garnerに入れる用のバッファ
 		0,
 		0,
 		0
 	};
-	inline ll mod_inv(ll a, ll p) {//	逆元
+	inline ll mod_inv(ll a, const ll p) {// 逆元
 		ll k = a % p;
 		if (k == 0) { return 0; }
 		if (k == 1) { return 1; }
@@ -23,36 +21,82 @@ private:
 		}
 		return n % p;
 	}
-	inline ll mod_pow(ll x, ll n, ll p) {//	累乗
+	inline ll mod_multi(ll a, ll b, ll p) {// かけ算
+		return (a * b) % p;
+	}
+	inline ll mod_pow(ll x, ll n, ll p) {// 累乗
 		x = x % p;
-		if (n < 0) {
-			return mod_pow(mod_inv(x, p), -n, p);
-		}
-		if (n == 0) {
-			return 1;
-		}
-		if (n == 1) {
-			return x;
-		}
-		if (n % 2 == 0) {
-			ll k = mod_pow(x, n / 2, p);
-			return (k * k) % p;
-		}
-		else {
-			ll k = mod_pow(x, n / 2, p);
-			return (((k * k) % p) * x) % p;
-		}
-	}
-	inline ll garner(ll mod) {//	garnerのアルゴリズム
-		ll c0 = temporary_ans[0] % prime0;
-		ll c1 = ((temporary_ans[1] - c0 + prime1) % prime1 * mod_inv(prime0, prime1)) % prime1;
-		ll c2 = ((((temporary_ans[2] - c0 - c1 * prime0) % prime2 + prime2) % prime2 * mod_inv(prime0 * prime1, prime2))) % prime2;
+		if (n < 0) { return mod_pow(mod_inv(x, p), -n, p); }
+		if (n == 0) { return 1; }
+		if (n == 1) { return x; }
 
-		return ((c2 * prime1 + c1) % mod * prime0 + c0) % mod;
+		ll k = mod_pow(x, n / 2, p);
+		k = mod_multi(k, k, p);
+		if (n % 2 == 1) { k = mod_multi(k, x, p); }
+
+		return k;
 	}
-	inline void fft(int N, int n, ll** src, ll** dest, bool inverse = false) {//	各素数についてFFTを行う
+	bool miller_rabin(ll n, ll p) {
+		ll a = n - 1;
+		int k = 0;
+
+		while (a % 2 == 0) {
+			k++;
+			a /= 2;
+		}
+		ll m = mod_pow(p, a, n);
+		if (m == 1) {
+			return true;
+		}
+		for (int i = 0; i < k; i++) {
+			if (m == n - 1) {
+				return true;
+			}
+			m = mod_multi(m, m, n);
+		}
+		return false;
+	}
+	bool isPrime(ll n) {// 素数判定
+		if (n <= 1) { return false; }
+
+		const vector<ll> primes = {
+			2,3,5,7,11,13,17,19,23,29,31,37,41,43,47,53,59,61,67,71,73,79,83,89,97,101,103,107,109,113
+		};
+
+		for (int i = 0; i < primes.size(); i++) {
+			if (n % primes[i] == 0) { return false; }
+		}
+		if (n < 120) { return false; }
+
+		int k = 0;
+		if (n < 2047) { k = 1; }
+		else if (n < 1373653) { k = 2; }
+		else if (n < 25326001) { k = 3; }
+		else if (n < 3215031751LL) { k = 4; }
+		else if (n < 2152302898747LL) { k = 5; }
+		else if (n < 3474749660383LL) { k = 6; }
+		else if (n < 341550071728321LL) { k = 7; }
+		else if (n < 3825123056546413051LL) { k = 9; }
+		else { k = 12; }
+
+		for (int i = 0; i < k; i++) {
+			if (miller_rabin(n, primes[i]) == false) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+	inline ll garner(ll a0, ll a1, ll a2) {//	garnerのアルゴリズム
+		ll c0 = a0 % primes[0];
+		ll c1 = ((a1 - c0 + primes[1]) % primes[1] * mod_inv(primes[0], primes[1])) % primes[1];
+		ll c2 = ((((a2 - c0 - c1 * primes[0]) % primes[2] + primes[2]) % primes[2] * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+
+		return (c2 * primes[1] + c1) * primes[0] + c0;
+	}
+	inline void fft(int N, int n, vector<ll> &src, vector<ll> &dest, const ll prime, bool inverse = false) {//	各素数についてFFTを行う
 		{
-			int* rate = new int[n];
+			vector<int> rate(n);
 			int k = N / 2;
 			for (int i = 0; i < n; i++) {
 				rate[i] = k;
@@ -65,29 +109,19 @@ private:
 					if (k & 1) { sum += rate[j]; }
 					k >>= 1;
 				}
-				dest[sum][0] = src[i][0] % prime0;
-				dest[sum][1] = src[i][1] % prime1;
-				dest[sum][2] = src[i][2] % prime2;
+				dest[sum] = src[i] % prime;
 			}
-			delete[] rate;
 		}
 
-		ll** base = new ll * [n];
-		for (int i = 0; i < n; i++) { base[i] = new ll[3]; }
+		vector<ll> base(n);
 		if (inverse == true) {
-			base[n - 1][0] = mod_pow(3, -(prime0 - 1) / N, prime0);
-			base[n - 1][1] = mod_pow(3, -(prime1 - 1) / N, prime1);
-			base[n - 1][2] = mod_pow(3, -(prime2 - 1) / N, prime2);
+			base[n - 1] = mod_pow(3, -(prime - 1) / N, prime);
 		}
 		else {
-			base[n - 1][0] = mod_pow(3, (prime0 - 1) / N, prime0);
-			base[n - 1][1] = mod_pow(3, (prime1 - 1) / N, prime1);
-			base[n - 1][2] = mod_pow(3, (prime2 - 1) / N, prime2);
+			base[n - 1] = mod_pow(3, (prime - 1) / N, prime);
 		}
 		for (int i = n - 2; i >= 0; i--) {
-			base[i][0] = (base[i + 1][0] * base[i + 1][0]) % prime0;
-			base[i][1] = (base[i + 1][1] * base[i + 1][1]) % prime1;
-			base[i][2] = (base[i + 1][2] * base[i + 1][2]) % prime2;
+			base[i] = (base[i + 1] * base[i + 1]) % prime;
 		}
 
 		int m = 1;
@@ -96,57 +130,30 @@ private:
 			int M = N / m;
 			int h = m / 2;
 			int L = 0, R = h, block, i;
-			ll w0, w1, w2, p0, p1, p2, q0, q1, q2;
 			for (block = 0; block < M; block++) {
-				w0 = 1;
-				w1 = 1;
-				w2 = 1;
-
+				ll w0 = 1;
 				for (i = 0; i < h; i++, L++, R++) {
-					p0 = dest[L][0];
-					p1 = dest[L][1];
-					p2 = dest[L][2];
+					ll p0 = dest[L];
+					ll q0 = (dest[R] * w0) % prime;
 
-					q0 = (dest[R][0] * w0) % prime0;
-					q1 = (dest[R][1] * w1) % prime1;
-					q2 = (dest[R][2] * w2) % prime2;
+					dest[L] = p0 + q0;
+					dest[R] = p0 - q0;
 
-					dest[L][0] = p0 + q0;
-					dest[L][1] = p1 + q1;
-					dest[L][2] = p2 + q2;
+					w0 = (w0 * base[layer]) % prime;
 
-					dest[R][0] = p0 - q0;
-					dest[R][1] = p1 - q1;
-					dest[R][2] = p2 - q2;
-
-					w0 = (w0 * base[layer][0]) % prime0;
-					w1 = (w1 * base[layer][1]) % prime1;
-					w2 = (w2 * base[layer][2]) % prime2;
-
-					if (dest[L][0] > prime0) { dest[L][0] -= prime0; }
-					if (dest[L][1] > prime1) { dest[L][1] -= prime1; }
-					if (dest[L][2] > prime2) { dest[L][2] -= prime2; }
-
-					if (dest[R][0] < 0) { dest[R][0] += prime0; }
-					if (dest[R][1] < 0) { dest[R][1] += prime1; }
-					if (dest[R][2] < 0) { dest[R][2] += prime2; }
+					if (dest[L] > prime) { dest[L] -= prime; }
+					if (dest[R] < 0) { dest[R] += prime; }
 				}
 				L += h;
 				R += h;
 			}
 		}
-		for (int i = 0; i < n; i++) { delete[] base[i]; }
-		delete[] base;
 
 		if (inverse == true) {
-			ll M0 = mod_inv(N, prime0);
-			ll M1 = mod_inv(N, prime1);
-			ll M2 = mod_inv(N, prime2);
+			ll M0 = mod_inv(N, prime);
 
 			for (int i = 0; i < N; i++) {
-				dest[i][0] = (dest[i][0] * M0) % prime0;
-				dest[i][1] = (dest[i][1] * M1) % prime1;
-				dest[i][2] = (dest[i][2] * M2) % prime2;
+				dest[i] = (dest[i] * M0) % prime;
 			}
 		}
 	}
@@ -221,15 +228,82 @@ private:
 		while (i < j) { i <<= 1; }
 		return i;
 	}
+	inline vector<ll> convolution_main(int size, int a, int b, vector<ll>& v1, vector<ll>& v2, const ll prime) {
+		int c = a + b;
+
+		int N = size * 2;
+		int n = 0;
+		while ((1 << n) < N) { n++; }
+
+		vector<vector<ll>> x_src, y_src;
+		vector<vector<ll>> x_dest, y_dest;
+		vector<vector<ll>> z_src, z_dest;
+
+		x_src.resize(a);
+		x_dest.resize(a);
+		for (int j = 0; j < a; j++) {
+			x_src[j].resize(N, 0);
+			x_dest[j].resize(N, 0);
+
+			for (int k = 0, l = j * size; k < size; k++, l++) {
+				if (l < v1.size()) { x_src[j][k] = v1[l]; }
+			}
+		}
+		y_src.resize(b);
+		y_dest.resize(b);
+		for (int j = 0; j < b; j++) {
+			y_src[j].resize(N, 0);
+			y_dest[j].resize(N, 0);
+
+			for (int k = 0, l = j * size; k < size; k++, l++) {
+				if (l < v2.size()) { y_src[j][k] = v2[l]; }
+			}
+		}
+		z_src.resize(c - 1);
+		z_dest.resize(c - 1);
+		for (int j = 0; j < c - 1; j++) {
+			z_src[j].resize(N, 0);
+			z_dest[j].resize(N, 0);
+		}
+
+		for (int j = 0; j < a; j++) {
+			fft(N, n, x_src[j], x_dest[j], prime);
+		}
+		for (int j = 0; j < b; j++) {
+			fft(N, n, y_src[j], y_dest[j], prime);
+		}
+
+		for (int _a = 0; _a < a; _a++) {
+			for (int _b = 0; _b < b; _b++) {
+				for (int j = 0; j < N; j++) {
+					z_src[_a + _b][j] += (x_dest[_a][j] * y_dest[_b][j]) % prime;
+				}
+			}
+		}
+
+		vector<ll> ans(size * c, 0);
+		for (int j = 0; j < c - 1; j++) {
+			fft(N, n, z_src[j], z_dest[j], prime, true);
+			int l = j * size;
+			for (int k = 0; k < N; k++, l++) {
+				ans[l] += z_dest[j][k];
+			}
+		}
+
+		for (int i = 0; i < ans.size(); i++) {
+			ans[i] %= prime;
+		}
+		return ans;
+	}
 public:
-	inline pair<ll*, int> convolution(vector<ll>& v1, vector<ll>& v2, ll mod = 1LL << 30) {// (誤差無し)畳み込みを行う
+	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2) {// (誤差無し)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
 		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
 
 		if (s1 == 0 || s2 == 0) {
-			return make_pair((ll*)NULL, 0);
+			return {};
 		}
 
 		int size = getConvolutionSize(s1, s2);
@@ -237,166 +311,49 @@ public:
 		int b = (s2 + size - 1) / size;
 		int c = a + b;
 
-		ll** ans = new ll * [size * c];
-		for (int i = 0; i < (size * c); i++) {
-			ans[i] = new ll[3];
-			ans[i][0] = 0;
-			ans[i][1] = 0;
-			ans[i][2] = 0;
+		int N = size * 2;
+		int n = 0;
+		while ((1 << n) < N) { n++; }
+
+		vector<vector<ll>> ans(3);
+		for (int i = 0; i < 3; i++) {
+			ans[i] = convolution_main(size, a, b, v1, v2, primes[i]);
 		}
 
-		vector<ll**> x_src, y_src;
-		vector<ll**> x_dest, y_dest;
-
-		for (int i = 0; i < a; i++) {
-			ll** buf = new ll * [size * 2];
-			ll** dest = new ll * [size * 2];
-			int k, l;
-			for (int j = 0; j < size; j++) {
-				k = j + size;
-				l = i * size + j;
-
-				buf[j] = new ll[3];
-				buf[k] = new ll[3];
-				dest[j] = new ll[3];
-				dest[k] = new ll[3];
-				if (l < s1) {
-					buf[j][0] = v1[l];
-					buf[j][1] = v1[l];
-					buf[j][2] = v1[l];
-				}
-				else {
-					buf[j][0] = 0;
-					buf[j][1] = 0;
-					buf[j][2] = 0;
-				}
-				buf[k][0] = 0;
-				buf[k][1] = 0;
-				buf[k][2] = 0;
-			}
-			x_src.push_back(buf);
-			x_dest.push_back(dest);
+		vector<ll> r(size * c, 0);
+		for (int j = 0; j < size * c; j++) {
+			r[j] = garner(ans[0][j], ans[1][j], ans[2][j]);
 		}
 
-		for (int i = 0; i < b; i++) {
-			ll** buf = new ll * [size * 2];
-			ll** dest = new ll * [size * 2];
-			int k, l;
-			for (int j = 0; j < size; j++) {
-				k = j + size;
-				l = i * size + j;
+		return r;
+	}
+	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2, ll mod) {// (誤差無し)畳み込みを行う
+		int s1 = v1.size(), s2 = v2.size();
 
-				buf[j] = new ll[3];
-				buf[k] = new ll[3];
-				dest[j] = new ll[3];
-				dest[k] = new ll[3];
-				if (l < s2) {
-					buf[j][0] = v2[l];
-					buf[j][1] = v2[l];
-					buf[j][2] = v2[l];
-				}
-				else {
-					buf[j][0] = 0;
-					buf[j][1] = 0;
-					buf[j][2] = 0;
-				}
-				buf[k][0] = 0;
-				buf[k][1] = 0;
-				buf[k][2] = 0;
-			}
-			y_src.push_back(buf);
-			y_dest.push_back(dest);
+		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
+		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
+
+		if (s1 == 0 || s2 == 0) {
+			return {};
 		}
+
+		int size = getConvolutionSize(s1, s2);
+		int a = (s1 + size - 1) / size;
+		int b = (s2 + size - 1) / size;
 
 		int N = size * 2;
 		int n = 0;
 		while ((1 << n) < N) { n++; }
 
-		for (int i = 0; i < a; i++) {
-			fft(N, n, x_src[i], x_dest[i]);
+		if (isPrime(mod) && mod % N == 1) {
+			return convolution_main(size, a, b, v1, v2, mod);
 		}
 
-		for (int i = 0; i < b; i++) {
-			fft(N, n, y_src[i], y_dest[i]);
+		vector<ll> ans = convolution(v1, v2);
+		for (int i = 0; i < ans.size(); i++) {
+			ans[i] %= mod;
 		}
-
-		vector<ll**> z_src, z_dest;
-		for (int i = 0; i < c - 1; i++) {
-			ll** src = new ll * [N];
-			ll** dest = new ll * [N];
-			for (int j = 0; j < N; j++) {
-				src[j] = new ll[3];
-				dest[j] = new ll[3];
-				src[j][0] = 0;
-				src[j][1] = 0;
-				src[j][2] = 0;
-			}
-			z_src.push_back(src);
-			z_dest.push_back(dest);
-		}
-
-		for (int i = 0; i < a; i++) {
-			for (int j = 0; j < b; j++) {
-				ll** ptr1 = x_dest[i];
-				ll** ptr2 = y_dest[j];
-				ll** ptr3 = z_src[i + j];
-				for (int k = 0; k < N; k++) {
-					ptr3[k][0] += ptr1[k][0] * ptr2[k][0];
-					ptr3[k][1] += ptr1[k][1] * ptr2[k][1];
-					ptr3[k][2] += ptr1[k][2] * ptr2[k][2];
-				}
-			}
-		}
-
-		for (int i = 0; i < c - 1; i++) {
-			fft(N, n, z_src[i], z_dest[i], true);
-			int k = i * size;
-			for (int j = 0; j < N; j++, k++) {
-				ans[k][0] += z_dest[i][j][0];
-				ans[k][1] += z_dest[i][j][1];
-				ans[k][2] += z_dest[i][j][2];
-			}
-		}
-
-		ll* r = new ll[size * c];
-		for (int i = 0; i < size * c; i++) {
-			temporary_ans[0] = ans[i][0];
-			temporary_ans[1] = ans[i][1];
-			temporary_ans[2] = ans[i][2];
-			delete[] ans[i];
-			r[i] = garner(mod);
-		}
-
-		delete[] ans;
-
-		for (int j = 0; j < N; j++) {
-			for (int i = 0; i < a; i++) {
-				delete[] x_src[i][j];
-				delete[] x_dest[i][j];
-			}
-			for (int i = 0; i < b; i++) {
-				delete[] y_src[i][j];
-				delete[] y_dest[i][j];
-			}
-			for (int i = 0; i < c - 1; i++) {
-				delete[] z_src[i][j];
-				delete[] z_dest[i][j];
-			}
-		}
-		for (int i = 0; i < a; i++) {
-			delete[] x_src[i];
-			delete[] x_dest[i];
-		}
-		for (int i = 0; i < b; i++) {
-			delete[] y_src[i];
-			delete[] y_dest[i];
-		}
-		for (int i = 0; i < c - 1; i++) {
-			delete[] z_src[i];
-			delete[] z_dest[i];
-		}
-
-		return make_pair(r, size * c);
+		return ans;
 	}
 	inline pair<double*, int> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
