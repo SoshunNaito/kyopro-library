@@ -9,8 +9,8 @@ public:
 		a = A, b = B;
 		flush();
 	}
-	inline ll getDouble() const {
-		return (ll)a / b;
+	inline double getDouble() const {
+		return (double)a / b;
 	}
 	inline void flush() {
 		assert(b != 0);
@@ -149,6 +149,346 @@ int main() {
 
 	for (auto itr = dest.begin(); itr != dest.end(); itr++) {
 		cout << itr->first << " が " << itr->second << " 個" << endl;
+	}
+
+	return 0;
+}
+
+
+
+
+
+
+
+/////////	座標圧縮
+template<typename T>
+class compressionClass {
+public:
+	compressionClass() {
+		st.clear();
+	}
+	void add(T element) {
+		st.insert(element);
+	}
+	void execute() {
+		v.clear();
+		mmap.clear();
+
+		v.resize(st.size());
+		int i = 0;
+		for (auto itr = st.begin(); itr != st.end(); itr++) {
+			v[i] = *itr;
+			mmap.insert({ *itr, i });
+			i++;
+		}
+		N = v.size();
+	}
+
+	int N;
+	vector<T> v;
+	unordered_map<T, int> mmap;
+
+private:
+	set<T> st;
+};
+
+
+/////////	使用例
+int main() {
+	vector<ll> src = {
+		274,6,134,65,6,4,362,5,2647,3,978,7,52,57,46,5,057,75352,5,34,8,375645,123452
+	};
+
+	compressionClass<ll> C;
+	for (int i = 0; i < src.size(); i++) {
+		C.add(src[i]);
+	}
+	C.execute();
+
+	for (int i = 0; i < C.v.size(); i++) {
+		cout << C.v[i] << " ";
+	}
+	cout << endl;
+	for (int i = 0; i < src.size(); i++) {
+		cout << C.mmap[src[i]] << " ";
+	}
+	cout << endl;
+
+	return 0;
+}
+
+
+
+
+
+
+////////////////	平面から直線への写像
+struct HashMap2D {
+	HashMap2D() {
+		Hmax = 1000000007, Hmin = -1000000007;
+		Wmax = 1000000007, Wmin = -1000000007;
+		Height = Hmax - Hmin;
+		Width = Wmax - Wmin;
+	}
+	HashMap2D(ll H_max, ll W_max, ll H_min = 0, ll W_min = 0) {
+		Hmax = H_max; Hmin = H_min;
+		Wmax = W_max; Wmin = W_min;
+		Height = Hmax - Hmin;
+		Width = Wmax - Wmin;
+	}
+	ll hash(ll h, ll w) {
+		h -= Hmin, w -= Wmin;
+		return Width * h + w;
+	}
+	ll hash(pair<ll, ll> p) {
+		return hash(p.first, p.second);
+	}
+	pair<ll, ll> inv(ll index) {
+		pair<ll, ll> p;
+		p.first = index / Width;
+		p.second = index % Width;
+		p.first += Hmin;
+		p.second += Wmin;
+		return p;
+	}
+
+private:
+	ll Hmax, Hmin, Wmax, Wmin;
+	ll Height, Width;
+};
+
+
+////////////////	使用例
+int main() {
+	const int H = 100, W = 1000;
+	HashMap2D hm(H, W);
+	cout << hm.hash(0, 0) << endl;
+	cout << hm.hash(1, 0) << endl;
+	cout << hm.hash(0, 1) << endl;
+	cout << endl;
+
+	const ll H_min = -50, H_max = 50;
+	const ll W_min = -500, W_max = 500;
+	HashMap2D hm2(H_max, W_max, H_min, W_min);
+	cout << hm2.hash({ 0,0 }) << endl;
+	cout << hm2.hash({ 1,0 }) << endl;
+	cout << hm2.hash({ -1,0 }) << endl;
+	cout << hm2.hash({ 0,1 }) << endl;
+	cout << hm2.hash({ 0,-1 }) << endl;
+	cout << endl;
+
+	pair<ll,ll> p = hm2.inv(76543);
+	cout << p.first << " " << p.second << endl;
+
+
+	return 0;
+}
+
+
+
+
+
+
+/////////	グリッドを扱うクラス
+const int UP = 1, DOWN = 2, LEFT = 4, RIGHT = 8;
+class gridClass {
+public:
+	gridClass() {
+		W = 0;
+		H = 0;
+		direction.clear();
+		active.clear();
+	}
+	gridClass(int H0, int W0) {
+		init(H0, W0);
+	}
+	void init(int H0, int W0) {
+		H = H0, W = W0;
+		direction.clear();
+		direction.resize(H);
+		active.clear();
+		active.resize(H);
+
+		for (int y = 0; y < H; y++) {
+			direction[y].clear();
+			direction[y].resize(W);
+			active[y].clear();
+			active[y].resize(W);
+
+			for (int x = 0; x < W; x++) {
+				direction[y][x] = 0;
+				if (y > 0) { direction[y][x] += UP; }
+				if (y < H - 1) { direction[y][x] += DOWN; }
+				if (x > 0) { direction[y][x] += LEFT; }
+				if (x < W - 1) { direction[y][x] += RIGHT; }
+
+				active[y][x] = true;
+			}
+		}
+	}
+
+	void enable(int y, int x, int command = 0, bool directedFlag = false) {
+		if (command == 0) {
+			active[y][x] = true;
+			return;
+		}
+		if (command & UP) {
+			if (y > 0) {
+				direction[y][x] |= UP;
+				if (directedFlag == false) { direction[y - 1][x] |= DOWN; }
+			}
+		}
+		if (command & DOWN) {
+			if (y < H - 1) {
+				direction[y][x] |= DOWN;
+				if (directedFlag == false) { direction[y + 1][x] |= UP; }
+			}
+		}
+		if (command & LEFT) {
+			if (x > 0) {
+				direction[y][x] |= LEFT;
+				if (directedFlag == false) { direction[y][x - 1] |= RIGHT; }
+			}
+		}
+		if (command & RIGHT) {
+			if (x < W - 1) {
+				direction[y][x] |= RIGHT;
+				if (directedFlag == false) { direction[y][x + 1] |= LEFT; }
+			}
+		}
+	}
+	void disable(int y, int x, int command = 0, bool directedFlag = false) {
+		if (command == 0) {
+			active[y][x] = false;
+			return;
+		}
+		if (command & UP) {
+			if (y > 0) {
+				direction[y][x] &= (15 - UP);
+				if (directedFlag == false) { direction[y - 1][x] &= (15 - DOWN); }
+			}
+		}
+		if (command & DOWN) {
+			if (y < H - 1) {
+				direction[y][x] &= (15 - DOWN);
+				if (directedFlag == false) { direction[y + 1][x] &= (15 - UP); }
+			}
+		}
+		if (command & LEFT) {
+			if (x > 0) {
+				direction[y][x] &= (15 - LEFT);
+				if (directedFlag == false) { direction[y][x - 1] &= (15 - RIGHT); }
+			}
+		}
+		if (command & RIGHT) {
+			if (x < W - 1) {
+				direction[y][x] &= (15 - RIGHT);
+				if (directedFlag == false) { direction[y][x + 1] &= (15 - LEFT); }
+			}
+		}
+	}
+
+	void getBfsOrder(
+		vector<pair<pair<int, int>, int>>& dest, // { { y座標(i成分), x座標(j成分) }, 親ノード番号 }
+		vector<pair<int, int>> src = { { 0,0 } } // y座標(i成分)、x座標(j成分)の順
+	) {
+		dest.clear();
+
+		vector<vector<int>> order(H);
+		for (int i = 0; i < H; i++) {
+			order[i].resize(W, -1);
+		}
+
+		queue<pair<pair<int, int>, int>> q;
+
+		int counter = 0;
+
+		for (int i = 0; i < src.size(); i++) {
+			q.push({ src[i], -1 });
+			order[src[i].first][src[i].second] = counter;
+			counter++;
+		}
+
+		while (q.size() > 0) {
+			dest.push_back(q.front());
+			pair<int, int> p = q.front().first;
+			q.pop();
+
+			if (
+				(direction[p.first][p.second] & UP) != 0 &&
+				active[p.first - 1][p.second] == true &&
+				order[p.first - 1][p.second] == -1
+				) {
+				q.push({ {p.first - 1,p.second},order[p.first][p.second] });
+				order[p.first - 1][p.second] = counter; counter++;
+			}
+			if (
+				(direction[p.first][p.second] & DOWN) != 0 &&
+				active[p.first + 1][p.second] == true &&
+				order[p.first + 1][p.second] == -1
+				) {
+				q.push({ {p.first + 1,p.second},order[p.first][p.second] });
+				order[p.first + 1][p.second] = counter; counter++;
+			}
+			if (
+				(direction[p.first][p.second] & LEFT) != 0 &&
+				active[p.first][p.second - 1] == true &&
+				order[p.first][p.second - 1] == -1
+				) {
+				q.push({ {p.first, p.second - 1}, order[p.first][p.second] });
+				order[p.first][p.second - 1] = counter; counter++;
+			}
+			if (
+				(direction[p.first][p.second] & RIGHT) != 0 &&
+				active[p.first][p.second + 1] == true &&
+				order[p.first][p.second + 1] == -1
+				) {
+				q.push({ {p.first, p.second + 1},order[p.first][p.second] });
+				order[p.first][p.second + 1] = counter; counter++;
+			}
+		}
+	}
+
+	int H, W;
+
+private:
+	vector<vector<int>> direction;
+	vector<vector<bool>> active;
+};
+
+
+/////////	使用例
+int main() {
+	char stage[5][6] = {
+		".#..#",
+		"...#.",
+		"#.##.",
+		"...#.",
+		".#..."
+	};
+
+	gridClass G(5, 5);
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			if (stage[i][j] == '.') {
+				G.enable(i, j);
+			}
+			else {
+				G.disable(i, j);
+			}
+		}
+	}
+
+	vector<pair<pair<int, int>, int>> v;
+	G.getBfsOrder(v);
+
+	for (auto itr = v.begin(); itr != v.end(); itr++) {
+		if (itr->second == -1) {
+			cout << "[source] -> [" << itr->first.first << ", " << itr->first.second << "]" << endl;
+		}
+		else {
+			cout << "[" << v[itr->second].first.first << ", "<<v[itr->second].first.second << "] -> [" << itr->first.first << ", " << itr->first.second << "]" << endl;
+		}
 	}
 
 	return 0;

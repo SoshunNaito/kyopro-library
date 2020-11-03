@@ -72,7 +72,7 @@ private:
 			delete[] rate;
 		}
 
-		ll** base = new ll*[n];
+		ll** base = new ll * [n];
 		for (int i = 0; i < n; i++) { base[i] = new ll[3]; }
 		if (inverse == true) {
 			base[n - 1][0] = mod_pow(3, -(prime0 - 1) / N, prime0);
@@ -150,7 +150,7 @@ private:
 			}
 		}
 	}
-	inline void fft(int N, int n, complex<ll>* src, complex<ll>* dest, bool inverse = false) {//	複素数を使ったFFTを行う
+	inline void fft(int N, int n, complex<double>* src, complex<double>* dest, bool inverse = false) {//	複素数を使ったFFTを行う
 		{
 			int* rate = new int[n];
 			int k = N / 2;
@@ -170,7 +170,7 @@ private:
 			delete[] rate;
 		}
 
-		complex<ll>* base = new complex<ll>[n];
+		complex<double>* base = new complex<double>[n];
 		if (inverse == true) {
 			for (int i = 0; i < n; i++) {
 				int j = 1 << (i + 1);
@@ -190,7 +190,7 @@ private:
 			int M = N / m;
 			int h = m / 2;
 			int L = 0, R = h, block, i;
-			complex<ll> p, q, w;
+			complex<double> p, q, w;
 			for (block = 0; block < M; block++) {
 				w = 1.0;
 
@@ -237,7 +237,7 @@ public:
 		int b = (s2 + size - 1) / size;
 		int c = a + b;
 
-		ll** ans = new ll*[size * c];
+		ll** ans = new ll * [size * c];
 		for (int i = 0; i < (size * c); i++) {
 			ans[i] = new ll[3];
 			ans[i][0] = 0;
@@ -398,14 +398,14 @@ public:
 
 		return make_pair(r, size * c);
 	}
-	inline pair<ll*, int> convolution(vector<ll>& v1, vector<ll>& v2) {//	(誤差あるかもしれない)畳み込みを行う
+	inline pair<double*, int> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
 		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
 
 		if (s1 == 0 || s2 == 0) {
-			return make_pair((ll*)NULL, 0);
+			return make_pair((double*)NULL, 0);
 		}
 
 		int size = getConvolutionSize(s1, s2);
@@ -413,19 +413,19 @@ public:
 		int b = (s2 + size - 1) / size;
 		int c = a + b;
 
-		complex<ll>* temp = new complex<ll>[size * c];
-		ll* ans = new ll[size * c];
+		complex<double>* temp = new complex<double>[size * c];
+		double* ans = new double[size * c];
 		for (int i = 0; i < (size * c); i++) {
 			temp[i] = 0;
 			ans[i] = 0;
 		}
 
-		vector<complex<ll>*> x_src, y_src;
-		vector<complex<ll>*> x_dest, y_dest;
+		vector<complex<double>*> x_src, y_src;
+		vector<complex<double>*> x_dest, y_dest;
 
 		for (int i = 0; i < a; i++) {
-			complex<ll>* buf = new complex<ll>[size * 2];
-			complex<ll>* dest = new complex<ll>[size * 2];
+			complex<double>* buf = new complex<double>[size * 2];
+			complex<double>* dest = new complex<double>[size * 2];
 			int k, l;
 			for (int j = 0; j < size; j++) {
 				k = j + size;
@@ -443,8 +443,8 @@ public:
 		}
 
 		for (int i = 0; i < b; i++) {
-			complex<ll>* buf = new complex<ll>[size * 2];
-			complex<ll>* dest = new complex<ll>[size * 2];
+			complex<double>* buf = new complex<double>[size * 2];
+			complex<double>* dest = new complex<double>[size * 2];
 			int k, l;
 			for (int j = 0; j < size; j++) {
 				k = j + size;
@@ -473,10 +473,10 @@ public:
 			fft(N, n, y_src[i], y_dest[i]);
 		}
 
-		vector<complex<ll>*> z_src, z_dest;
+		vector<complex<double>*> z_src, z_dest;
 		for (int i = 0; i < c - 1; i++) {
-			complex<ll>* src = new complex<ll>[N];
-			complex<ll>* dest = new complex<ll>[N];
+			complex<double>* src = new complex<double>[N];
+			complex<double>* dest = new complex<double>[N];
 
 			for (int j = 0; j < N; j++) {
 				src[j] = 0;
@@ -520,29 +520,27 @@ public:
 			delete[] z_dest[i];
 		}
 
-		return make_pair(ans, size * c);
+		return { ans, size * c };
 	}
 };
 
-int main(){
+int main() {
 	convolutionClass C;
 	int N, M; cin >> N >> M;
 
-	const bool USE_COMPLEX = false;
+	const bool USE_COMPLEX = true;
 
 	if (USE_COMPLEX) {//	複素数を使った畳み込み
-		vector<ll> A, B;
+		vector<double> A(N), B(M);
 
 		for (int i = 0; i < N; i++) {
-			ll a; cin >> a;
-			A.push_back(a);
+			cin >> A[i];
 		}
 		for (int i = 0; i < M; i++) {
-			ll b; cin >> b;
-			B.push_back(b);
+			cin >> B[i];
 		}
 
-		pair<ll*, int> p = C.convolution(A, B);//	畳み込み
+		pair<double*, int> p = C.convolution(A, B);//	畳み込み
 		int size = p.second;//	サイズ取得(2^nじゃない場合もある)
 
 		cout << "size = " << size << endl;
