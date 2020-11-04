@@ -2,11 +2,7 @@
 class convolutionClass {// 畳み込み
 private:
 	const ll primes[3] = { 167772161, 469762049, 1224736769 };
-	ll temporary_ans[3] = {// garnerに入れる用のバッファ
-		0,
-		0,
-		0
-	};
+
 	inline ll mod_inv(ll a, const ll p) {// 逆元
 		ll k = a % p;
 		if (k == 0) { return 0; }
@@ -87,12 +83,17 @@ private:
 
 		return true;
 	}
-	inline ll garner(ll a0, ll a1, ll a2) {//	garnerのアルゴリズム
-		ll c0 = a0 % primes[0];
-		ll c1 = ((a1 - c0 + primes[1]) % primes[1] * mod_inv(primes[0], primes[1])) % primes[1];
-		ll c2 = ((((a2 - c0 - c1 * primes[0]) % primes[2] + primes[2]) % primes[2] * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+	inline ll garner(ll a0, ll a1, ll a2, ll mod) {//	garnerのアルゴリズム
+		ll c0 = a0;
+		if (c0 >= primes[0]) { c0 %= primes[0]; }
 
-		return (c2 * primes[1] + c1) * primes[0] + c0;
+		ll c1 = a1 - c0 + primes[1];
+		if (c1 >= primes[1]) { c1 %= primes[1]; }
+		c1 = (c1 * mod_inv(primes[0], primes[1])) % primes[1];
+
+		ll c2 = ((((a2 - c0 - c1 * primes[0]) % primes[2] + primes[2]) * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+
+		return ((c2 * primes[1] + c1) % mod * primes[0] + c0) % mod;
 	}
 	inline void fft(int N, int n, vector<ll> &src, vector<ll> &dest, const ll prime, bool inverse = false) {//	各素数についてFFTを行う
 		{
@@ -296,7 +297,7 @@ private:
 		return ans;
 	}
 public:
-	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2) {// (誤差無し)畳み込みを行う
+	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2, ll mod) {// (誤差無し)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
@@ -315,44 +316,20 @@ public:
 		int n = 0;
 		while ((1 << n) < N) { n++; }
 
-		vector<vector<ll>> ans(3);
-		for (int i = 0; i < 3; i++) {
-			ans[i] = convolution_main(size, a, b, v1, v2, primes[i]);
-		}
-
-		vector<ll> r(size * c, 0);
-		for (int j = 0; j < size * c; j++) {
-			r[j] = garner(ans[0][j], ans[1][j], ans[2][j]);
-		}
-
-		return r;
-	}
-	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2, ll mod) {// (誤差無し)畳み込みを行う
-		int s1 = v1.size(), s2 = v2.size();
-
-		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
-		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
-
-		if (s1 == 0 || s2 == 0) {
-			return {};
-		}
-
-		int size = getConvolutionSize(s1, s2);
-		int a = (s1 + size - 1) / size;
-		int b = (s2 + size - 1) / size;
-
-		int N = size * 2;
-		int n = 0;
-		while ((1 << n) < N) { n++; }
-
 		if (isPrime(mod) && mod % N == 1) {
 			return convolution_main(size, a, b, v1, v2, mod);
 		}
 
-		vector<ll> ans = convolution(v1, v2);
-		for (int i = 0; i < ans.size(); i++) {
-			ans[i] %= mod;
+		vector<vector<ll>> temp(3);
+		for (int i = 0; i < 3; i++) {
+			temp[i] = convolution_main(size, a, b, v1, v2, primes[i]);
 		}
+
+		vector<ll> ans(size * c, 0);
+		for (int j = 0; j < size * c; j++) {
+			ans[j] = garner(temp[0][j], temp[1][j], temp[2][j], mod);
+		}
+
 		return ans;
 	}
 	inline pair<double*, int> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
