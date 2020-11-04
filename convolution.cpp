@@ -108,7 +108,7 @@ private:
 				if (dest[i] >= prime) { dest[i] %= prime; }
 			}
 		}
-		else{
+		else {
 			vector<int> rate(n);
 			int k = N / 2;
 			for (int i = 0; i < n; i++) {
@@ -169,9 +169,14 @@ private:
 			}
 		}
 	}
-	inline void fft(int N, int n, complex<double>* src, complex<double>* dest, bool inverse = false) {//	複素数を使ったFFTを行う
-		{
-			int* rate = new int[n];
+	inline void fft(int N, int n, vector<complex<double>>& src, vector<complex<double>>& dest, bool inverse, bool optimized = false) {//	複素数を使ったFFTを行う
+		if (optimized) {
+			for (int i = 0; i < N; i++) {
+				dest[i] = src[i];
+			}
+		}
+		else {
+			vector<int> rate(n);
 			int k = N / 2;
 			for (int i = 0; i < n; i++) {
 				rate[i] = k;
@@ -186,59 +191,66 @@ private:
 				}
 				dest[sum] = src[i];
 			}
-			delete[] rate;
 		}
 
-		complex<double>* base = new complex<double>[n];
-		if (inverse == true) {
-			for (int i = 0; i < n; i++) {
-				int j = 1 << (i + 1);
-				base[i] = polar(1.0, 2.0 * acos(-1.0) / j);
+		vector<complex<double>> W(N / 2 + 1);
+		{
+			const double theta = 2.0 * acos(-1.0) * (inverse ? (-1) : 1) / N;
+			const complex<double> w1 = polar(1.0, theta);
+			const complex<double> w2 = polar(1.0, theta * 2);
+			const complex<double> w4 = polar(1.0, theta * 4);
+			for (int i = 0; i < N / 2; i += 8) {
+				W[i] = polar(1.0, theta * i); W[i + 4] = W[i] * w4;
+				W[i + 2] = W[i] * w2; W[i + 6] = W[i + 4] * w2;
+				W[i + 1] = W[i] * w1; W[i + 3] = W[i + 2] * w1;
+				W[i + 5] = W[i + 4] * w1; W[i + 7] = W[i + 6] * w1;
 			}
-		}
-		else {
-			for (int i = 0; i < n; i++) {
-				int j = 1 << (i + 1);
-				base[i] = polar(1.0, -2.0 * acos(-1.0) / j);
-			}
+			W[N / 2] = -1;
 		}
 
-		int m = 1;
+		bool flag = optimized & !inverse;
 		for (int layer = 0; layer < n; layer++) {
-			m *= 2;
-			int M = N / m;
-			int h = m / 2;
-			int L = 0, R = h, block, i;
-			complex<double> p, q, w;
-			for (block = 0; block < M; block++) {
-				w = 1.0;
+			const int m = flag ? (N >> layer) : (1 << (layer + 1));
+			const int M = flag ? (1 << layer) : (1 << (n - 1 - layer));
+			const int h = m >> 1;
 
-				for (i = 0; i < h; i++, L++, R++) {
-					p = dest[L];
-					q = dest[R] * w;
+			int L = 0, R = h;
+			for (int block = 0; block < M; block++) {
+				for (int i = 0; i < h; i++, L++, R++) {
+					const complex<double> w0 = W[M * i];
+					const complex<double> p0 = dest[L];
+					const complex<double> q0 = flag ? (dest[R]) : (dest[R] * w0);
 
-					dest[L] = p + q;
-					dest[R] = p - q;
+					dest[L] = p0 + q0;
+					dest[R] = p0 - q0;
 
-					w *= base[layer];
+					if (flag) { dest[R] = dest[R] * w0; }
 				}
 				L += h;
 				R += h;
 			}
 		}
-		delete[] base;
 
 		if (inverse == true) {
-			for (int i = 0; i < N; i++) {
-				dest[i] /= N;
-			}
+			const double p = 1.0 / N;
+			for (int i = 0; i < N; i++) { dest[i] *= p; }
 		}
 	}
-	inline int getConvolutionSize(int x, int y) {// サイズの組からブロックサイズを得る
-		int i = 1;
-		int j = min(x, y);
-		while (i < j) { i <<= 1; }
-		return i;
+	inline int getConvolutionSize(int x, int y, bool ntt = false) {// サイズの組からブロックサイズを得る
+		int k = 0, K = 1;
+		const int N = min(x, y);
+		while (K < N) { K <<= 1; k++; }
+
+		ll s = 1LL << 60, ans = 1;
+
+		for (ll i = 0, I = 1; i <= k; i++, I <<= 1) {
+			const ll a = (x + I - 1) / I;
+			const ll b = (y + I - 1) / I;
+			const ll score = (ntt ? 0 : (a + b) * I * i * 6) + (a * b) * I;///////////// 計算時間の評価関数
+			if (chmin(s, score)) { ans = I; }
+		}
+
+		return ans;
 	}
 	vector<ll> convolution_main(const int size, const int a, const int b, const vector<ll>& v1, const vector<ll>& v2, const ll prime) {
 		const int c = a + b;
@@ -268,6 +280,7 @@ private:
 					if (l >= v1.size()) { break; }
 					x_src[j][k] = v1[l];
 				}
+				fft(N, n, x_src[j], x_dest[j], prime, false, true);
 			}
 			for (int j = 0; j < b; j++) {
 				y_src[j].resize(N, 0);
@@ -277,17 +290,11 @@ private:
 					if (l >= v2.size()) { break; }
 					y_src[j][k] = v2[l];
 				}
+				fft(N, n, y_src[j], y_dest[j], prime, false, true);
 			}
 			for (int j = 0; j < c - 1; j++) {
 				z_src[j].resize(N, 0);
 				z_dest[j].resize(N);
-			}
-
-			for (int j = 0; j < a; j++) {
-				fft(N, n, x_src[j], x_dest[j], prime, false, true);
-			}
-			for (int j = 0; j < b; j++) {
-				fft(N, n, y_src[j], y_dest[j], prime, false, true);
 			}
 
 			for (int _a = 0; _a < a; _a++) {
@@ -325,7 +332,7 @@ public:
 			return {};
 		}
 
-		const int size = getConvolutionSize(s1, s2);
+		const int size = getConvolutionSize(s1, s2, true);
 		const int a = (s1 + size - 1) / size;
 		const int b = (s2 + size - 1) / size;
 		const int c = a + b;
@@ -350,129 +357,83 @@ public:
 
 		return ans;
 	}
-	inline pair<double*, int> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
+	inline vector<double> convolution(vector<double>& v1, vector<double>& v2) {//	(誤差あるかもしれない)畳み込みを行う
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
 		while (s2 > 0 && v2[s2 - 1] == 0) { s2--; }
 
 		if (s1 == 0 || s2 == 0) {
-			return make_pair((double*)NULL, 0);
+			return {};
 		}
 
-		int size = getConvolutionSize(s1, s2);
-		int a = (s1 + size - 1) / size;
-		int b = (s2 + size - 1) / size;
-		int c = a + b;
+		const int size = getConvolutionSize(s1, s2);
+		const int a = (s1 + size - 1) / size;
+		const int b = (s2 + size - 1) / size;
+		const int c = a + b;
 
-		complex<double>* temp = new complex<double>[size * c];
-		double* ans = new double[size * c];
-		for (int i = 0; i < (size * c); i++) {
-			temp[i] = 0;
-			ans[i] = 0;
-		}
-
-		vector<complex<double>*> x_src, y_src;
-		vector<complex<double>*> x_dest, y_dest;
-
-		for (int i = 0; i < a; i++) {
-			complex<double>* buf = new complex<double>[size * 2];
-			complex<double>* dest = new complex<double>[size * 2];
-			int k, l;
-			for (int j = 0; j < size; j++) {
-				k = j + size;
-				l = i * size + j;
-				if (l < s1) {
-					buf[j] = v1[l];
-				}
-				else {
-					buf[j] = 0;
-				}
-				buf[k] = 0;
-			}
-			x_src.push_back(buf);
-			x_dest.push_back(dest);
-		}
-
-		for (int i = 0; i < b; i++) {
-			complex<double>* buf = new complex<double>[size * 2];
-			complex<double>* dest = new complex<double>[size * 2];
-			int k, l;
-			for (int j = 0; j < size; j++) {
-				k = j + size;
-				l = i * size + j;
-				if (l < s2) {
-					buf[j] = v2[l];
-				}
-				else {
-					buf[j] = 0;
-				}
-				buf[k] = 0;
-			}
-			y_src.push_back(buf);
-			y_dest.push_back(dest);
-		}
-
-		int N = size * 2;
+		const int N = size * 2;
 		int n = 0;
 		while ((1 << n) < N) { n++; }
 
-		for (int i = 0; i < a; i++) {
-			fft(N, n, x_src[i], x_dest[i]);
-		}
+		vector<complex<double>> temp(size * c, 0);
+		vector<double> ans(size * c, 0);
 
-		for (int i = 0; i < b; i++) {
-			fft(N, n, y_src[i], y_dest[i]);
-		}
-
-		vector<complex<double>*> z_src, z_dest;
-		for (int i = 0; i < c - 1; i++) {
-			complex<double>* src = new complex<double>[N];
-			complex<double>* dest = new complex<double>[N];
-
-			for (int j = 0; j < N; j++) {
-				src[j] = 0;
-				dest[j] = 0;
-			}
-			z_src.push_back(src);
-			z_dest.push_back(dest);
-		}
-
-		for (int i = 0; i < a; i++) {
-			for (int j = 0; j < b; j++) {
-				for (int k = 0; k < N; k++) {
-					z_src[i + j][k] += x_dest[i][k] * y_dest[j][k];
+		if (size <= 64) {
+			for (int i = 0; i < s1; i++) {
+				for (int j = 0; j < s2; j++) {
+					ans[i + j] += v1[i] * v2[j];
 				}
 			}
 		}
+		else {
+			vector<vector<complex<double>>> x_src(a), x_dest(a);
+			vector<vector<complex<double>>> y_src(b), y_dest(b);
+			vector<vector<complex<double>>> z_src(c - 1), z_dest(c - 1);
 
-		for (int i = 0; i < c - 1; i++) {
-			fft(N, n, z_src[i], z_dest[i], true);
-			int k = i * size;
-			for (int j = 0; j < N; j++, k++) {
-				temp[k] += z_dest[i][j];
+			for (int i = 0; i < a; i++) {
+				x_src[i].resize(N, 0);
+				x_dest[i].resize(N);
+				for (int j = 0, k = i * size; j < size; j++, k++) {
+					if (k >= s1) { break; }
+					x_src[i][j] = v1[k];
+				}
+				fft(N, n, x_src[i], x_dest[i], false, true);
+			}
+			for (int i = 0; i < b; i++) {
+				y_src[i].resize(N, 0);
+				y_dest[i].resize(N);
+				for (int j = 0, k = i * size; j < size; j++, k++) {
+					if (k >= s2) { break; }
+					y_src[i][j] = v2[k];
+				}
+				fft(N, n, y_src[i], y_dest[i], false, true);
+			}
+			for (int i = 0; i < c - 1; i++) {
+				z_src[i].resize(N, 0);
+				z_dest[i].resize(N);
+			}
+
+			for (int i = 0; i < a; i++) {
+				for (int j = 0; j < b; j++) {
+					for (int k = 0; k < N; k++) {
+						z_src[i + j][k] += x_dest[i][k] * y_dest[j][k];
+					}
+				}
+			}
+			for (int i = 0; i < c - 1; i++) {
+				fft(N, n, z_src[i], z_dest[i], true, true);
+				int k = i * size;
+				for (int j = 0; j < N; j++, k++) {
+					temp[k] += z_dest[i][j];
+				}
+			}
+			for (int i = 0; i < size * c; i++) {
+				ans[i] = temp[i].real();
 			}
 		}
 
-		for (int i = 0; i < size * c; i++) {
-			ans[i] = temp[i].real();
-		}
-		delete[] temp;
-
-		for (int i = 0; i < a; i++) {
-			delete[] x_src[i];
-			delete[] x_dest[i];
-		}
-		for (int i = 0; i < b; i++) {
-			delete[] y_src[i];
-			delete[] y_dest[i];
-		}
-		for (int i = 0; i < c - 1; i++) {
-			delete[] z_src[i];
-			delete[] z_dest[i];
-		}
-
-		return { ans, size * c };
+		return ans;
 	}
 };
 
