@@ -4,35 +4,39 @@ private:
 	const ll primes[3] = { 167772161, 469762049, 1224736769 };
 
 	inline ll mod_inv(ll a, const ll p) {// ãtå≥
-		ll k = a % p;
+		ll k = a;
+		if (k >= p) { k %= p; }
+
 		if (k == 0) { return 0; }
 		if (k == 1) { return 1; }
 		ll s = p, t = k, m = 0, n = 1, r, c;
 
 		while (t > 1) {
-			r = s % t;
 			c = s / t;
-			c = ((m - n * c) % p + p) % p;
+			r = s - c * t;
+			c = (m - n * c) % p + p;
+			if (c >= p) { c -= p; }
 			s = t, m = n, t = r, n = c;
 		}
-		return n % p;
+		return n;
 	}
 	inline ll mod_multi(ll a, ll b, ll p) {// Ç©ÇØéZ
 		return (a * b) % p;
 	}
 	inline ll mod_pow(ll x, ll n, ll p) {// ó›èÊ
-		x = x % p;
+		if (x >= p) { x = x % p; }
+
 		if (n < 0) { return mod_pow(mod_inv(x, p), -n, p); }
-		if (n == 0) { return 1; }
-		if (n == 1) { return x; }
 
-		ll k = mod_pow(x, n / 2, p);
-		k = mod_multi(k, k, p);
-		if (n % 2 == 1) { k = mod_multi(k, x, p); }
-
-		return k;
+		ll ans = 1, k = x;
+		while (n > 0) {
+			if (n & 1) { ans = mod_multi(ans, k, p); }
+			k = mod_multi(k, k, p);
+			n >>= 1;
+		}
+		return ans;
 	}
-	bool miller_rabin(ll n, ll p) {
+	inline bool miller_rabin(ll n, ll p) {
 		ll a = n - 1;
 		int k = 0;
 
@@ -52,7 +56,7 @@ private:
 		}
 		return false;
 	}
-	bool isPrime(ll n) {// ëfêîîªíË
+	inline bool isPrime(ll n) {// ëfêîîªíË
 		if (n <= 1) { return false; }
 
 		const vector<ll> primes = {
@@ -91,12 +95,20 @@ private:
 		if (c1 >= primes[1]) { c1 %= primes[1]; }
 		c1 = (c1 * mod_inv(primes[0], primes[1])) % primes[1];
 
-		ll c2 = ((((a2 - c0 - c1 * primes[0]) % primes[2] + primes[2]) * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+		ll c2 = (((a2 - c0 - c1 * primes[0]) % primes[2] * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+		if (c2 < 0) { c2 += primes[2]; }
 
 		return ((c2 * primes[1] + c1) % mod * primes[0] + c0) % mod;
 	}
-	inline void fft(int N, int n, vector<ll> &src, vector<ll> &dest, const ll prime, bool inverse = false) {//	äeëfêîÇ…Ç¬Ç¢ÇƒFFTÇçsÇ§
-		{
+
+	void fft(int N, int n, vector<ll>& src, vector<ll>& dest, const ll prime, bool inverse, bool optimized = false) {// äeëfêîÇ…Ç¬Ç¢ÇƒFFTÇçsÇ§
+		if (optimized) {
+			for (int i = 0; i < N; i++) {
+				dest[i] = src[i];
+				if (dest[i] >= prime) { dest[i] %= prime; }
+			}
+		}
+		else{
 			vector<int> rate(n);
 			int k = N / 2;
 			for (int i = 0; i < n; i++) {
@@ -114,36 +126,35 @@ private:
 			}
 		}
 
-		vector<ll> base(n);
-		if (inverse == true) {
-			base[n - 1] = mod_pow(3, -(prime - 1) / N, prime);
-		}
-		else {
-			base[n - 1] = mod_pow(3, (prime - 1) / N, prime);
-		}
-		for (int i = n - 2; i >= 0; i--) {
-			base[i] = (base[i + 1] * base[i + 1]) % prime;
+		vector<ll> W(N / 2 + 1);
+		{
+			const ll w = mod_pow(3, (prime - 1) / N * (inverse ? (-1) : 1), prime);
+			W[0] = 1;
+			for (int i = 1; i <= N / 2; i++) {
+				W[i] = (W[i - 1] * w) % prime;
+			}
 		}
 
-		int m = 1;
+		bool flag = optimized & !inverse;
 		for (int layer = 0; layer < n; layer++) {
-			m *= 2;
-			int M = N / m;
-			int h = m / 2;
-			int L = 0, R = h, block, i;
-			for (block = 0; block < M; block++) {
-				ll w0 = 1;
-				for (i = 0; i < h; i++, L++, R++) {
-					ll p0 = dest[L];
-					ll q0 = (dest[R] * w0) % prime;
+			const int m = flag ? (N >> layer) : (1 << (layer + 1));
+			const int M = flag ? (1 << layer) : (1 << (n - 1 - layer));
+			const int h = m >> 1;
+
+			int L = 0, R = h;
+			for (int block = 0; block < M; block++) {
+				for (int i = 0; i < h; i++, L++, R++) {
+					const ll w0 = W[M * i];
+					const ll p0 = dest[L];
+					const ll q0 = flag ? (dest[R]) : ((dest[R] * w0) % prime);
 
 					dest[L] = p0 + q0;
 					dest[R] = p0 - q0;
 
-					w0 = (w0 * base[layer]) % prime;
-
-					if (dest[L] > prime) { dest[L] -= prime; }
+					if (dest[L] >= prime) { dest[L] -= prime; }
 					if (dest[R] < 0) { dest[R] += prime; }
+
+					if (flag) { dest[R] = (dest[R] * w0) % prime; }
 				}
 				L += h;
 				R += h;
@@ -151,7 +162,7 @@ private:
 		}
 
 		if (inverse == true) {
-			ll M0 = mod_inv(N, prime);
+			const ll M0 = mod_inv(N, prime);
 
 			for (int i = 0; i < N; i++) {
 				dest[i] = (dest[i] * M0) % prime;
@@ -229,75 +240,82 @@ private:
 		while (i < j) { i <<= 1; }
 		return i;
 	}
-	inline vector<ll> convolution_main(int size, int a, int b, vector<ll>& v1, vector<ll>& v2, const ll prime) {
-		int c = a + b;
+	vector<ll> convolution_main(const int size, const int a, const int b, const vector<ll>& v1, const vector<ll>& v2, const ll prime) {
+		const int c = a + b;
+		vector<ll> ans(size * c, 0);
 
-		int N = size * 2;
-		int n = 0;
-		while ((1 << n) < N) { n++; }
-
-		vector<vector<ll>> x_src, y_src;
-		vector<vector<ll>> x_dest, y_dest;
-		vector<vector<ll>> z_src, z_dest;
-
-		x_src.resize(a);
-		x_dest.resize(a);
-		for (int j = 0; j < a; j++) {
-			x_src[j].resize(N, 0);
-			x_dest[j].resize(N, 0);
-
-			for (int k = 0, l = j * size; k < size; k++, l++) {
-				if (l < v1.size()) { x_src[j][k] = v1[l]; }
+		if (size <= 64) {
+			for (int i = 0; i < v1.size(); i++) {
+				for (int j = 0; j < v2.size(); j++) {
+					ans[i + j] += v1[i] * v2[j];
+				}
 			}
 		}
-		y_src.resize(b);
-		y_dest.resize(b);
-		for (int j = 0; j < b; j++) {
-			y_src[j].resize(N, 0);
-			y_dest[j].resize(N, 0);
+		else {
+			const int N = size * 2;
+			int n = 0;
+			while ((1 << n) < N) { n++; }
 
-			for (int k = 0, l = j * size; k < size; k++, l++) {
-				if (l < v2.size()) { y_src[j][k] = v2[l]; }
+			vector<vector<ll>> x_src(a), x_dest(a);
+			vector<vector<ll>> y_src(b), y_dest(b);
+			vector<vector<ll>> z_src(c - 1), z_dest(c - 1);
+
+			for (int j = 0; j < a; j++) {
+				x_src[j].resize(N, 0);
+				x_dest[j].resize(N);
+
+				for (int k = 0, l = j * size; k < size; k++, l++) {
+					if (l >= v1.size()) { break; }
+					x_src[j][k] = v1[l];
+				}
 			}
-		}
-		z_src.resize(c - 1);
-		z_dest.resize(c - 1);
-		for (int j = 0; j < c - 1; j++) {
-			z_src[j].resize(N, 0);
-			z_dest[j].resize(N, 0);
-		}
+			for (int j = 0; j < b; j++) {
+				y_src[j].resize(N, 0);
+				y_dest[j].resize(N);
 
-		for (int j = 0; j < a; j++) {
-			fft(N, n, x_src[j], x_dest[j], prime);
-		}
-		for (int j = 0; j < b; j++) {
-			fft(N, n, y_src[j], y_dest[j], prime);
-		}
+				for (int k = 0, l = j * size; k < size; k++, l++) {
+					if (l >= v2.size()) { break; }
+					y_src[j][k] = v2[l];
+				}
+			}
+			for (int j = 0; j < c - 1; j++) {
+				z_src[j].resize(N, 0);
+				z_dest[j].resize(N);
+			}
 
-		for (int _a = 0; _a < a; _a++) {
-			for (int _b = 0; _b < b; _b++) {
-				for (int j = 0; j < N; j++) {
-					z_src[_a + _b][j] += (x_dest[_a][j] * y_dest[_b][j]) % prime;
+			for (int j = 0; j < a; j++) {
+				fft(N, n, x_src[j], x_dest[j], prime, false, true);
+			}
+			for (int j = 0; j < b; j++) {
+				fft(N, n, y_src[j], y_dest[j], prime, false, true);
+			}
+
+			for (int _a = 0; _a < a; _a++) {
+				for (int _b = 0; _b < b; _b++) {
+					for (int j = 0; j < N; j++) {
+						z_src[_a + _b][j] += (x_dest[_a][j] * y_dest[_b][j]) % prime;
+					}
+				}
+			}
+
+			for (int j = 0; j < c - 1; j++) {
+				fft(N, n, z_src[j], z_dest[j], prime, true, true);
+				int l = j * size;
+				for (int k = 0; k < N; k++, l++) {
+					ans[l] += z_dest[j][k];
 				}
 			}
 		}
 
-		vector<ll> ans(size * c, 0);
-		for (int j = 0; j < c - 1; j++) {
-			fft(N, n, z_src[j], z_dest[j], prime, true);
-			int l = j * size;
-			for (int k = 0; k < N; k++, l++) {
-				ans[l] += z_dest[j][k];
-			}
-		}
-
 		for (int i = 0; i < ans.size(); i++) {
-			ans[i] %= prime;
+			if (ans[i] >= prime) {
+				ans[i] %= prime;
+			}
 		}
 		return ans;
 	}
 public:
-	inline vector<ll> convolution(vector<ll>& v1, vector<ll>& v2, ll mod) {// (åÎç∑ñ≥Çµ)èÙÇ›çûÇ›ÇçsÇ§
+	vector<ll> convolution(vector<ll>& v1, vector<ll>& v2, ll mod) {// (åÎç∑ñ≥Çµ)èÙÇ›çûÇ›ÇçsÇ§
 		int s1 = v1.size(), s2 = v2.size();
 
 		while (s1 > 0 && v1[s1 - 1] == 0) { s1--; }
@@ -307,12 +325,12 @@ public:
 			return {};
 		}
 
-		int size = getConvolutionSize(s1, s2);
-		int a = (s1 + size - 1) / size;
-		int b = (s2 + size - 1) / size;
-		int c = a + b;
+		const int size = getConvolutionSize(s1, s2);
+		const int a = (s1 + size - 1) / size;
+		const int b = (s2 + size - 1) / size;
+		const int c = a + b;
 
-		int N = size * 2;
+		const int N = size * 2;
 		int n = 0;
 		while ((1 << n) < N) { n++; }
 
