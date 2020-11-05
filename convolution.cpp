@@ -2,6 +2,10 @@
 class convolutionClass {// 畳み込み
 private:
 	const ll primes[3] = { 167772161, 469762049, 1224736769 };
+	const ll minv[2] = {
+		mod_inv(primes[0], primes[1]),
+		mod_inv(primes[0] * primes[1], primes[2])
+	};
 
 	inline ll mod_inv(ll a, const ll p) {// 逆元
 		ll k = a;
@@ -93,9 +97,9 @@ private:
 
 		ll c1 = a1 - c0 + primes[1];
 		if (c1 >= primes[1]) { c1 %= primes[1]; }
-		c1 = (c1 * mod_inv(primes[0], primes[1])) % primes[1];
+		c1 = (c1 * minv[0]) % primes[1];
 
-		ll c2 = (((a2 - c0 - c1 * primes[0]) % primes[2] * mod_inv(primes[0] * primes[1], primes[2]))) % primes[2];
+		ll c2 = (((a2 - c0 - c1 * primes[0]) % primes[2] * minv[1])) % primes[2];
 		if (c2 < 0) { c2 += primes[2]; }
 
 		return ((c2 * primes[1] + c1) % mod * primes[0] + c0) % mod;
@@ -438,10 +442,12 @@ public:
 };
 
 int main() {
+	ios::sync_with_stdio(false);
+	std::cin.tie(0);
 	convolutionClass C;
 	int N, M; cin >> N >> M;
 
-	const bool USE_COMPLEX = true;
+	const bool USE_COMPLEX = false;
 
 	if (USE_COMPLEX) {//	複素数を使った畳み込み
 		vector<double> A(N), B(M);
@@ -453,34 +459,36 @@ int main() {
 			cin >> B[i];
 		}
 
-		pair<double*, int> p = C.convolution(A, B);//	畳み込み
-		int size = p.second;//	サイズ取得(2^nじゃない場合もある)
+		vector<double> p = C.convolution(A, B);//	畳み込み
 
-		cout << "size = " << size << endl;
-
-		for (int i = 0; i < size; i++) {
-			cout << (ll)(p.first[i] + 0.5) << endl;
+		for (int i = 0; i < N + M - 1; i++) {
+			if (i < p.size()) {
+				cout << (ll)(p[i] + 0.5) << " ";
+			}
+			else {
+				cout << "0 ";
+			}
 		}
 	}
 	else {//	誤差無し畳み込み
-		vector<ll> A, B;
+		vector<ll> A(N), B(M);
 
 		for (int i = 0; i < N; i++) {
-			ll a; cin >> a;
-			A.push_back(a);
+			cin >> A[i];
 		}
 		for (int i = 0; i < M; i++) {
-			ll b; cin >> b;
-			B.push_back(b);
+			cin >> B[i];
 		}
 
-		pair<ll*, int> p = C.convolution(A, B);//	畳み込み
-		int size = p.second;//	サイズ取得(2^nじゃない場合もある)
+		vector<ll> p = C.convolution(A, B, 998244353);//	畳み込み
 
-		cout << "size = " << size << endl;
-
-		for (int i = 0; i < size; i++) {
-			cout << p.first[i] << endl;
+		for (int i = 0; i < N + M - 1; i++) {
+			if (i < p.size()) {
+				cout << p[i] << " ";
+			}
+			else {
+				cout << "0 ";
+			}
 		}
 	}
 
