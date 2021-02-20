@@ -51,35 +51,32 @@ public:
 
 
 /////////////		グラフを扱うクラス
-
+struct EdgeType {
+	EdgeType() {
+		from = 0, to = 0;
+		weight = 1LL;
+	}
+	EdgeType(int _from, int _to, ll _weight) {
+		from = _from; to = _to; weight = _weight;
+	}
+	int from, to;
+	ll weight;
+};
 class GraphClass {// グラフ入力を受け取る
 public:
-	GraphClass(int n, bool directed) {// 頂点数nのグラフを初期化する。
+	GraphClass(int n, bool directed) {// 頂点数nのグラフを初期化する
 		directedFlag = directed;
 		N = n; M = 0;
 		next.resize(N);
-		nodeWeight.resize(N, 1);
 	}
-	inline void setNodeWeight(int m, ll weight) {// n番のノードの重みをweightに設定
-		nodeWeight[m] = weight;
-	}
-	inline int getEdgeIndex(int x, int y) {// 辺の組からエッジの番号を得る
-		assert(next[x].find(y) != next[x].end());
-		return next[x][y];
+	inline void addEdge(EdgeType e) {// エッジ追加
+		int n = (int)edge.size();
+		edge.push_back(e); M++;
+		next[e.from].push_back({ e.to, n });
+		if (directedFlag == false) { next[e.to].push_back({ e.from, n }); }
 	}
 	inline void addEdge(int x, int y, ll weight = 1) {// エッジ追加
-		int n = (int)edge.size();
-		edge.push_back({ {x,y}, weight }); edgeActiveFlag.push_back(true); M++;
-		next[x].insert({ y, n });
-		if (directedFlag == false) { next[y].insert({ x, n }); }
-	}
-	inline void removeEdge(int x, int y) {// エッジ除去
-		int k = getEdgeIndex(x, y); assert(k >= 0);
-		edgeActiveFlag[k] = false; M--;
-
-		x = edge[k].first.first, y = edge[k].first.second;
-		next[x].erase(next[x].find(y));
-		if (directedFlag == false) { next[y].erase(next[y].find(x)); }
+		addEdge({ x,y,weight });
 	}
 	bool isTree() {// 木になっているかどうか幅優先探索で調べる
 		if (N <= 0 || M != N - 1) { return false; }
@@ -101,13 +98,12 @@ public:
 #ifdef USE_TREE
 #ifdef USE_UNIONFIND
 	TreeClass* kruskal() {// クラスカル法によって最小全域木を構成する
-		TreeClass* T = new TreeClass(); T->activate(N);
+		TreeClass* T = new TreeClass(N);
 		UnionFindClass uf; uf.activate(N);
 
 		vector<pair<ll, pair<int, int>>> E;
 		for (int i = 0; i < edge.size(); i++) {
-			if (edgeActiveFlag[i] == false) { continue; }
-			E.push_back({ edge[i].second, {edge[i].first.first, edge[i].first.second} });
+			E.push_back({ edge[i].weight, {edge[i].from, edge[i].to} });
 		}
 		sort(E.begin(), E.end());
 
@@ -126,15 +122,17 @@ public:
 
 		buf.clear(); buf.resize(N, INF); buf[n] = 0;
 		set<pair<ll, int>> st; st.insert({ 0, n });
-		while (st.empty() == false) {
-			pair<ll, int> p = *st.begin(); st.erase(st.begin());
-			int k = p.second;
+		while (st.size() > 0) {
+			const pair<ll, int> p = *st.begin(); st.erase(st.begin());
+			const int x = p.second;
 
-			if (p.first <= buf[k]) {
-				for (auto itr = next[k].begin(); itr != next[k].end(); itr++) {
-					if (buf[itr->first] > buf[k] + edge[itr->second].second) {
-						buf[itr->first] = buf[k] + edge[itr->second].second;
-						st.insert({ buf[itr->first], itr->first });
+			if (p.first <= buf[x]) {
+				for (auto itr = next[x].begin(); itr != next[x].end(); itr++) {
+					const int y = itr->first;
+					const EdgeType e = edge[itr->second];
+					if (buf[y] > buf[x] + e.weight) {
+						buf[y] = buf[x] + e.weight;
+						st.insert({ buf[y], y });
 					}
 				}
 			}
@@ -150,28 +148,28 @@ public:
 		queue<int> que; que.push(0);
 
 		while (que.size() > 0) {
-			int p = que.front(); que.pop();
-			wait[p] = false;
-			for (auto itr = next[p].begin(); itr != next[p].end(); itr++) {
-				int x = itr->first; ll w = edge[itr->second].second;
-				if (buf[x] <= buf[p] + w) { continue; }
-				buf[x] = buf[p] + w;
-				if (wait[x] == false) {
-					wait[x] = true; count[x]++; que.push(x);
-					if (count[x] == N) { return false; }
+			const int x = que.front(); que.pop();
+			wait[x] = false;
+			for (auto itr = next[x].begin(); itr != next[x].end(); itr++) {
+				const int y = itr->first;
+				const EdgeType e = edge[itr->second];
+				if (buf[y] <= buf[x] + e.weight) { continue; }
+				buf[y] = buf[x] + e.weight;
+				if (wait[y] == false) {
+					wait[y] = true; count[y]++; que.push(y);
+					if (count[y] == N) { return false; }
 				}
 			}
 		}
 		return true;
 	}
 
-	bool getDistanceFrom(int n, vector<ll> &buf) {// ある点からの最短距離の表を受け取る。
+	bool getDistanceFrom(int n, vector<ll>& buf) {// ある点からの最短距離の表を受け取る。
 		assert(n >= 0 && n < N);
 
 		bool negativeFlag = false;
 		for (int i = 0; i < edge.size(); i++) {
-			if (edgeActiveFlag[i] == false) { continue; }
-			if (edge[i].second < 0) { negativeFlag = true; break; }
+			if (edge[i].weight < 0) { negativeFlag = true; break; }
 		}
 		if (negativeFlag) {// 負の重みがあればベルマンフォード法
 			return bellmanFord(n, buf);
@@ -190,8 +188,7 @@ public:
 
 		bool negativeFlag = false;
 		for (int i = 0; i < edge.size(); i++) {
-			if (edgeActiveFlag[i] == false) { continue; }
-			if (edge[i].second < 0) { negativeFlag = true; break; }
+			if (edge[i].weight < 0) { negativeFlag = true; break; }
 		}
 		if (negativeFlag == false) {// 全て0以上だったらダイクストラ法を使う
 			for (int i = 0; i < N; i++) { dijkstra(i, buf[i]); }
@@ -199,7 +196,7 @@ public:
 		else {// 負の重みが含まれていたらワーシャルフロイド法を使う
 			for (int i = 0; i < N; i++) {
 				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
-					buf[i][itr->first] = edge[itr->second].second;
+					buf[i][itr->first] = edge[itr->second].weight;
 				}
 			}
 			for (int i = 0; i < N; i++) {
@@ -223,11 +220,11 @@ public:
 			cout << "i = " << i << " (nodeWeight = " << nodeWeight[i] << "), 接続先 = ";
 			if (next[i].size() == 0) { cout << "なし" << endl; continue; }
 			auto itr = next[i].begin();
-			cout << itr->first << "(weight = " << edge[itr->second].second << ")";
+			cout << itr->first << "(weight = " << edge[itr->second].weight << ")";
 			itr++;
 
 			for (; itr != next[i].end(); itr++) {
-				cout << ", " << itr->first << "(weight = " << edge[itr->second].second << ")";
+				cout << ", " << itr->first << "(weight = " << edge[itr->second].weight << ")";
 			}
 			cout << endl;
 		}
@@ -237,9 +234,8 @@ public:
 	bool directedFlag;// 有向グラフかどうか
 	int N, M;
 	vector<ll> nodeWeight;// ノードの重み
-	vector<unordered_map<int, int>> next;// 各ノードからの行き先とエッジ番号
-	vector<pair<pair<int, int>, ll>> edge;// エッジ(頂点ペアと重み)
-	vector<bool> edgeActiveFlag;// エッジが有効かどうか(removeを呼ぶとfalseに)
+	vector<vector<pair<int, int>>> next;// 各ノードからの行き先とエッジ番号
+	vector<EdgeType> edge;// エッジ(頂点ペアと重み)
 };
 
 int main() {
