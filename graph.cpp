@@ -4,48 +4,73 @@
 
 
 /////////////         UnionFind
-//    バラバラの要素を結合してグループにまとめる際に使える構造。
-//    グループ番号、要素数の取得が可能だが、グループに属する要素の列挙はO(N)かかる。
+// 属する頂点集合も管理しているので O(NlogN) となる．
 
 #define USE_UNIONFIND
+#define UF_COMPRESS_ROUTE
 class UnionFindClass {
 public:
 	UnionFindClass() { N = 0; }
 	UnionFindClass(int n) { activate(n); }
 
-	void activate(int n) {// 要素の数N
+	inline void activate(int n) {// 要素の数N
 		N = n;
 		parent.clear(); parent.resize(N, -1);
-		size.clear(); size.resize(N, 1);
+		content.clear(); content.resize(N);
+		for (int i = 0; i < N; i++) { content[i].insert(i); }
 	}
 	inline int getParent(int x) {// グループの親の番号を得る
 		if (parent[x] == -1) { return x; }
 		int y = getParent(parent[x]);
+#ifdef UF_COMPRESS_ROUTE
 		parent[x] = y;
+#endif
 		return y;
 	}
 	inline int getSize(int x) {// 自分が属するグループのサイズを得る
-		return size[getParent(x)];
+		return content[getParent(x)].size();
 	}
-	inline bool connect(int x, int y) {// 二つの要素を結ぶ。２グループ間を繋いだ場合trueを返す
+	inline bool connect(int x, int y) {// 二つの要素を結ぶ．２グループ間を繋いだ場合trueを返す
 		x = getParent(x), y = getParent(y);
 		if (x == y) { return false; }
-		if (size[x] < size[y]) {
+		if (content[x].size() < content[y].size()) {
 			parent[x] = y;
-			size[y] += size[x];
-			size[x] = 0;
+			for (auto itr = content[x].begin(); itr != content[x].end(); itr++) {
+				content[y].insert(*itr);
+			}
+			content[x].clear();
 		}
 		else {
 			parent[y] = x;
-			size[x] += size[y];
-			size[y] = 0;
+			for (auto itr = content[y].begin(); itr != content[y].end(); itr++) {
+				content[x].insert(*itr);
+			}
+			content[y].clear();
 		}
 		return true;
 	}
 
+	inline void debugCout() {
+		cout << endl;
+		cout << "頂点数 = " << N << "個" << endl;
+		cout << endl;
+
+		for (int i = 0; i < N; i++) {
+			cout << "i = " << i << " , parent = " << parent[i];
+			if (parent[i] == -1) {
+				cout << " : ";
+				for (auto itr = content[i].begin(); itr != content[i].end(); itr++) {
+					cout << *itr << " ";
+				}
+			}
+			cout << endl;
+		}
+		cout << endl;
+	}
+
 	int N;// 個数
-	vector<int> parent;// 親の番号。自分自身が親なら-1。
-	vector<int> size;// 親のみ有効。自分のグループのサイズ。
+	vector<int> parent;// 親の番号．自分自身が親なら-1．
+	vector<set<int>> content;// 親のみ有効．属する頂点の集合，
 };
 
 
