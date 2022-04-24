@@ -21,32 +21,41 @@
 
 using namespace std;
 
-////////////////	型名など
+////////////////	蝙句錐縺ｪ縺ｩ
 typedef long long ll;
 #define endl '\n'
 
-////////////////	各種定数
+////////////////	蜷�遞ｮ螳壽焚
 const ll INF = 1LL << 60;
 const double EPS = 1e-12;
 
-////////////////	便利なテンプレート関数
-template<typename T>
-inline bool chmin(T& x, T a) {
-	if (x >= a) { x = a; return true; }
+////////////////	萓ｿ蛻ｩ縺ｪ繝�繝ｳ繝励Ξ繝ｼ繝磯未謨ｰ
+template <typename T>
+inline bool chmin(T &x, T a)
+{
+	if (x >= a)
+	{
+		x = a;
+		return true;
+	}
 	return false;
 }
 
-template<typename T>
-inline bool chmax(T& x, T a) {
-	if (x <= a) { x = a; return true; }
+template <typename T>
+inline bool chmax(T &x, T a)
+{
+	if (x <= a)
+	{
+		x = a;
+		return true;
+	}
 	return false;
 }
 
-
-int main() {
+int main()
+{
 	ios::sync_with_stdio(false);
 	std::cin.tie(0);
-
 
 	return 0;
 }

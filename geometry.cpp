@@ -1,249 +1,361 @@
-/*
-
-// ‰pŒê‚ª‹êè‚Èl—p
-#define JU_SIN		Centroid
-#define NAISETSU_EN	Inscribed_Circle
-#define GAISETSU_EN	Circumscribed_Circle
-#define SUI_SIN		Orthocenter
-#define TOTSU_HO	convex_hull
+// è‹±èªãŒè‹¦æ‰‹ãªäººç”¨
+#define JU_SIN Centroid
+#define NAISETSU_EN Inscribed_Circle
+#define GAISETSU_EN Circumscribed_Circle
+#define SUI_SIN Orthocenter
+#define TOTSU_HO convex_hull
 
 const double EPS = 0.000000000001;
-unsigned int SEED() {
+unsigned int SEED()
+{
 	random_device rd;
 	return rd();
 }
 mt19937_64 MT(SEED());
 
-class Vec2 {// “_
+class Vec2
+{ // ç‚¹
 public:
 	double x, y;
 
-	Vec2() {
+	Vec2()
+	{
 		x = 0, y = 0;
 	}
-	Vec2(double X, double Y) {
+	Vec2(double X, double Y)
+	{
 		x = X, y = Y;
 	}
-	Vec2(pair<double, double> p) {
+	Vec2(pair<double, double> p)
+	{
 		x = p.first, y = p.second;
 	}
-	Vec2(const Vec2& other) {
+	Vec2(const Vec2 &other)
+	{
 		x = other.x, y = other.y;
 	}
 
-	inline Vec2& operator = (const Vec2& other) {
+	inline Vec2 &operator=(const Vec2 &other)
+	{
 		x = other.x, y = other.y;
 		return *this;
 	}
-	inline bool operator ==(const Vec2& other) {
+	inline bool operator==(const Vec2 &other)
+	{
 		return ((abs(x - other.x) < EPS) && (abs(y - other.y) < EPS));
 	}
-	inline bool operator !=(const Vec2& other) {
+	inline bool operator!=(const Vec2 &other)
+	{
 		return !(*this == other);
 	}
-	inline Vec2& operator += (const Vec2& other) {
+	inline Vec2 &operator+=(const Vec2 &other)
+	{
 		x += other.x, y += other.y;
 		return *this;
 	}
-	inline Vec2& operator -= (const Vec2& other) {
+	inline Vec2 &operator-=(const Vec2 &other)
+	{
 		x -= other.x, y -= other.y;
 		return *this;
 	}
-	inline Vec2& operator *= (double param) {
+	inline Vec2 &operator*=(double param)
+	{
 		x *= param, y *= param;
 		return *this;
 	}
-	inline Vec2& operator /= (double param) {
+	inline Vec2 &operator/=(double param)
+	{
 		assert(abs(param) >= EPS);
 		x /= param, y /= param;
 		return *this;
 	}
-	inline Vec2 operator + (const Vec2& other) {
-		Vec2 v = *this; v += other;
+	inline Vec2 operator+(const Vec2 &other)
+	{
+		Vec2 v = *this;
+		v += other;
 		return v;
 	}
-	inline Vec2 operator - (const Vec2& other) {
-		Vec2 v = *this; v -= other;
+	inline Vec2 operator-(const Vec2 &other)
+	{
+		Vec2 v = *this;
+		v -= other;
 		return v;
 	}
-	inline Vec2 operator * (double param) {
-		Vec2 v = *this; v *= param;
+	inline Vec2 operator*(double param)
+	{
+		Vec2 v = *this;
+		v *= param;
 		return v;
 	}
-	inline Vec2 operator / (double param) {
-		Vec2 v = *this; v /= param;
+	inline Vec2 operator/(double param)
+	{
+		Vec2 v = *this;
+		v /= param;
 		return v;
 	}
-	inline double length2() const {
+	inline double length2() const
+	{
 		return x * x + y * y;
 	}
-	inline double length() const {
+	inline double length() const
+	{
 		return sqrt(length2());
 	}
-	inline double dot(Vec2 other) const {
+	inline double dot(Vec2 other) const
+	{
 		return x * other.x + y * other.y;
 	}
-	inline double cross(Vec2 other) const {
+	inline double cross(Vec2 other) const
+	{
 		return x * other.y - y * other.x;
 	}
-	inline void normalize() {
+	inline void normalize()
+	{
 		double rate = length();
-		if (rate < EPS) {
+		if (rate < EPS)
+		{
 			x = 1, y = 0;
 		}
-		else {
+		else
+		{
 			rate = 1.0 / rate;
 			x *= rate;
 			y *= rate;
 		}
 	}
-	inline void rotate(double angle_deg) {
+	inline void rotate(double angle_deg)
+	{
 		double c = cos(angle_deg * 0.01745329251994329547);
 		double s = sin(angle_deg * 0.01745329251994329547);
 		double X = x * c - y * s;
 		double Y = x * s + y * c;
 		x = X, y = Y;
 	}
-	inline void rotate90() {
+	inline void rotate90()
+	{
 		double X = -y, Y = x;
 		x = X, y = Y;
 	}
-	inline double rad() const {
-		if (abs(x) < EPS && abs(y) < EPS) {
+	inline double rad() const
+	{
+		if (abs(x) < EPS && abs(y) < EPS)
+		{
 			return 0;
 		}
 		return atan2(x, y);
 	}
-	double deg() const {
+	double deg() const
+	{
 		return rad() * 57.29577951308232286;
 	}
 };
-class Line {// ’¼ü
+class Line
+{ // ç›´ç·š
 public:
-	Line() {
+	Line()
+	{
 		norm = Vec2(1, 0);
 		dot = 0;
 	}
-	Line(Vec2 A, Vec2 B) {
+	Line(Vec2 A, Vec2 B)
+	{
 		B -= A;
 		B.normalize();
 		norm.x = -B.y;
 		norm.y = B.x;
 		dot = norm.dot(A);
 	}
-	Line(Vec2 n, double d) {
+	Line(Vec2 n, double d)
+	{
 		norm = n;
 		dot = d;
 		double k = 1.0 / n.length();
 		norm *= k;
 		dot *= k;
 	}
-	Line(const Line& other) {
+	Line(const Line &other)
+	{
 		norm = other.norm, dot = other.dot;
 	}
-	inline Line& operator = (const Line& other) {
+	inline Line &operator=(const Line &other)
+	{
 		norm = other.norm, dot = other.dot;
 		return *this;
 	}
 
-	// –@üƒxƒNƒgƒ‹‚ÆA“àÏ‚Ì’l‚ğ‚Á‚Ä‚¨‚­
+	// æ³•ç·šãƒ™ã‚¯ãƒˆãƒ«ã¨ã€å†…ç©ã®å€¤ã‚’æŒã£ã¦ãŠã
 	Vec2 norm;
 	double dot;
 };
-inline Line Vertical_Bisector(Vec2 A, Vec2 B) {// ‚’¼“ñ“™•ªü
+inline Line Vertical_Bisector(Vec2 A, Vec2 B)
+{ // å‚ç›´äºŒç­‰åˆ†ç·š
 	A = (A + B) / 2;
 	return Line(B - A, (B - A).dot(A));
 }
-inline Vec2 Projection(Vec2 P, Line L) {// Ë‰e
+inline Vec2 Projection(Vec2 P, Line L)
+{ // å°„å½±
 	return P + L.norm * (L.dot - L.norm.dot(P));
 }
-inline Vec2 Intersection(Line L1, Line L2) {// 2’¼ü‚ÌŒğ“_
-	if (abs(L1.norm.cross(L2.norm)) < EPS) {// •Às‚¾‚Á‚½ê‡
+inline Vec2 Intersection(Line L1, Line L2)
+{ // 2ç›´ç·šã®äº¤ç‚¹
+	if (abs(L1.norm.cross(L2.norm)) < EPS)
+	{ // ä¸¦è¡Œã ã£ãŸå ´åˆ
 		Vec2 P = L1.norm * L1.dot;
 		assert((P.dot(L2.norm) - L2.dot) < EPS);
 		return P;
 	}
-	else {
+	else
+	{
 		Vec2 P = L1.norm * L1.dot;
-		Vec2 v = L1.norm; v.rotate90();
+		Vec2 v = L1.norm;
+		v.rotate90();
 		double d = L2.dot - P.dot(L2.norm);
 		return P + v * d / (v.dot(L2.norm));
 	}
 }
 
-class Triangle {// OŠpŒ`
+class Triangle
+{ // ä¸‰è§’å½¢
 public:
-	Triangle() {
-		A = Vec2(0, 0); B = Vec2(0, 0); C = Vec2(0, 0);
+	Triangle()
+	{
+		A = Vec2(0, 0);
+		B = Vec2(0, 0);
+		C = Vec2(0, 0);
 	}
-	Triangle(Vec2 P1, Vec2 P2, Vec2 P3) {
-		A = P1; B = P2; C = P3; flush();
+	Triangle(Vec2 P1, Vec2 P2, Vec2 P3)
+	{
+		A = P1;
+		B = P2;
+		C = P3;
+		flush();
 	}
-	Triangle(const Triangle& other) {
-		A = other.A; B = other.B; C = other.C; flush();
+	Triangle(const Triangle &other)
+	{
+		A = other.A;
+		B = other.B;
+		C = other.C;
+		flush();
 	}
-	inline Triangle& operator =(const Triangle& other) {
-		A = other.A; B = other.B; C = other.C; flush();
+	inline Triangle &operator=(const Triangle &other)
+	{
+		A = other.A;
+		B = other.B;
+		C = other.C;
+		flush();
 		return *this;
 	}
-	inline void flush() {
-		if ((B - A).cross(C - A) < -EPS) {
-			Vec2 P = B; B = C; C = P;
+	inline void flush()
+	{
+		if ((B - A).cross(C - A) < -EPS)
+		{
+			Vec2 P = B;
+			B = C;
+			C = P;
 		}
 	}
-	inline int inside(Vec2 P) {
+	inline int inside(Vec2 P)
+	{
 		double d1 = (B - A).dot(P - A);
 		double d2 = (C - B).dot(P - B);
 		double d3 = (A - C).dot(P - C);
 
-		if (d1 > EPS || d2 > EPS || d3 > EPS) { return 0; }
-		if (abs(d1) < EPS || abs(d2) < EPS || abs(d3) < EPS) { return 2; }
+		if (d1 > EPS || d2 > EPS || d3 > EPS)
+		{
+			return 0;
+		}
+		if (abs(d1) < EPS || abs(d2) < EPS || abs(d3) < EPS)
+		{
+			return 2;
+		}
 		return 1;
 	}
-	inline double area() {
+	inline double area()
+	{
 		return (B - A).cross(C - A) / 2;
 	}
 
 	Vec2 A, B, C;
 };
-inline Vec2 Centroid(Vec2 A, Vec2 B, Vec2 C) {// dS
+inline Vec2 Centroid(Vec2 A, Vec2 B, Vec2 C)
+{ // é‡å¿ƒ
 	return (A + B + C) / 3;
 }
-inline Vec2 Centroid(Triangle T) {// dS
+inline Vec2 Centroid(Triangle T)
+{ // é‡å¿ƒ
 	return Centroid(T.A, T.B, T.C);
 }
 
-class Circle {// ‰~
+class Circle
+{ // å††
 public:
-	Circle() {
-		center = Vec2(0, 0); r2 = 0; r = 0;
+	Circle()
+	{
+		center = Vec2(0, 0);
+		r2 = 0;
+		r = 0;
 	}
-	Circle(Vec2 center, double _r) {
-		center = center; r = _r; r2 = r * r;
+	Circle(Vec2 center, double _r)
+	{
+		center = center;
+		r = _r;
+		r2 = r * r;
 	}
-	Circle(const Circle& other) {
-		center = other.center; r = other.r; r2 = other.r2;
+	Circle(const Circle &other)
+	{
+		center = other.center;
+		r = other.r;
+		r2 = other.r2;
 	}
-	inline Circle& operator = (const Circle& other) {
-		center = other.center; r = other.r; r2 = other.r2;
+	inline Circle &operator=(const Circle &other)
+	{
+		center = other.center;
+		r = other.r;
+		r2 = other.r2;
 		return *this;
 	}
-	inline int inside(Vec2 P) {
+	inline int inside(Vec2 P)
+	{
 		double d = (P - center).length2() - r2;
-		if (d > EPS) { return 0; }
-		if (d > -EPS) { return 2; }
+		if (d > EPS)
+		{
+			return 0;
+		}
+		if (d > -EPS)
+		{
+			return 2;
+		}
 		return 1;
 	}
 	Vec2 center;
 	double r;
 	double r2;
 };
-inline Circle Circumscribed_Circle(Vec2 A, Vec2 B, Vec2 C) {// ŠOÚ‰~
+inline Circle Circumscribed_Circle(Vec2 A, Vec2 B, Vec2 C)
+{ // å¤–æ¥å††
 	Circle D;
 
-	if (B == C) { D.center = (A + B) / 2; D.r = (A - D.center).length(); D.r2 = (A - D.center).length2(); return D; }
-	if (C == A) { D.center = (B + C) / 2; D.r = (B - D.center).length(); D.r2 = (B - D.center).length2(); return D; }
-	if (A == B) { D.center = (C + A) / 2; D.r = (C - D.center).length(); D.r2 = (C - D.center).length2(); return D; }
+	if (B == C)
+	{
+		D.center = (A + B) / 2;
+		D.r = (A - D.center).length();
+		D.r2 = (A - D.center).length2();
+		return D;
+	}
+	if (C == A)
+	{
+		D.center = (B + C) / 2;
+		D.r = (B - D.center).length();
+		D.r2 = (B - D.center).length2();
+		return D;
+	}
+	if (A == B)
+	{
+		D.center = (C + A) / 2;
+		D.r = (C - D.center).length();
+		D.r2 = (C - D.center).length2();
+		return D;
+	}
 
 	double a = (B - C).length2();
 	double b = (C - A).length2();
@@ -256,17 +368,21 @@ inline Circle Circumscribed_Circle(Vec2 A, Vec2 B, Vec2 C) {// ŠOÚ‰~
 	double r = (s - c * 2) * c;
 
 	s = p + q + r;
-	p /= s; q /= s; r /= s;
+	p /= s;
+	q /= s;
+	r /= s;
 
 	D.center = A * p + B * q + C * r;
 	D.r = (A - D.center).length();
 	D.r2 = (A - D.center).length2();
 	return D;
 }
-inline Circle Circumscribed_Circle(Triangle T) {// ŠOÚ‰~
+inline Circle Circumscribed_Circle(Triangle T)
+{ // å¤–æ¥å††
 	return Circumscribed_Circle(T.A, T.B, T.C);
 }
-inline Circle Inscribed_Circle(Triangle T) {// “àÚ‰~
+inline Circle Inscribed_Circle(Triangle T)
+{ // å†…æ¥å††
 	double a = (T.B - T.C).length();
 	double b = (T.C - T.A).length();
 	double c = (T.A - T.B).length();
@@ -274,46 +390,70 @@ inline Circle Inscribed_Circle(Triangle T) {// “àÚ‰~
 
 	return Circle((T.A * a + T.B * b + T.C * c) * r, T.area() * 2 * r);
 }
-inline Circle Inscribed_Circle(Vec2 A, Vec2 B, Vec2 C) {// “àÚ‰~
+inline Circle Inscribed_Circle(Vec2 A, Vec2 B, Vec2 C)
+{ // å†…æ¥å††
 	return Inscribed_Circle(Triangle(A, B, C));
 }
-inline Vec2 Orthocenter(Triangle T) {// ‚S
+inline Vec2 Orthocenter(Triangle T)
+{ // å‚å¿ƒ
 	return Centroid(T) * 3 - Circumscribed_Circle(T).center * 2;
 }
-inline Vec2 Orthocenter(Vec2 A, Vec2 B, Vec2 C) {// ‚S
+inline Vec2 Orthocenter(Vec2 A, Vec2 B, Vec2 C)
+{ // å‚å¿ƒ
 	return Orthocenter(Triangle(A, B, C));
 }
-inline vector<Vec2> Intersection(Circle C, Line L) {// ‰~‚Æ’¼ü‚ÌŒğ“_
-	double d = C.center.dot(L.norm); d = abs(d - L.dot);
-	if (d > C.r + EPS) { return {}; }
+inline vector<Vec2> Intersection(Circle C, Line L)
+{ // å††ã¨ç›´ç·šã®äº¤ç‚¹
+	double d = C.center.dot(L.norm);
+	d = abs(d - L.dot);
+	if (d > C.r + EPS)
+	{
+		return {};
+	}
 	Vec2 P = Projection(C.center, L);
-	if (d > C.r - EPS) { return { P }; }
-	Vec2 v = L.norm; v.rotate90();
+	if (d > C.r - EPS)
+	{
+		return {P};
+	}
+	Vec2 v = L.norm;
+	v.rotate90();
 	v *= sqrt(C.r2 - d * d);
-	return { P + v, P - v };
+	return {P + v, P - v};
 }
-inline vector<Vec2> Intersection(Circle C1, Circle C2) {// ‰~‚Æ‰~‚ÌŒğ“_
+inline vector<Vec2> Intersection(Circle C1, Circle C2)
+{ // å††ã¨å††ã®äº¤ç‚¹
 	Vec2 A = C1.center, B = C2.center;
 	double r1 = C1.r, r2 = C2.r, d = (A - B).length();
-	if (d > r1 + r2 + EPS) { return {}; }
-	if (d > r1 + r2 - EPS) { return { A + (B - A) * r1 / d }; }
+	if (d > r1 + r2 + EPS)
+	{
+		return {};
+	}
+	if (d > r1 + r2 - EPS)
+	{
+		return {A + (B - A) * r1 / d};
+	}
 	double d1 = (C1.r2 + d * d - C2.r2) / (d * 2);
 	Vec2 M = A + (B - A) * d1 / d;
-	Vec2 v = (B - A); v.normalize(); v.rotate90();
+	Vec2 v = (B - A);
+	v.normalize();
+	v.rotate90();
 	v *= sqrt(C1.r2 - d1 * d1);
-	return { M + v, M - v };
+	return {M + v, M - v};
 }
 
-inline pair<Vec2*, int> convex_hull(vector<Vec2>& P) {// “Ê•ï
+inline pair<Vec2 *, int> convex_hull(vector<Vec2> &P)
+{ // å‡¸åŒ…
 	int N = (int)P.size();
 	vector<Vec2> v;
 	{
 		vector<pair<pair<double, double>, int>> temp;
-		for (int i = 0; i < N; i++) {
-			temp.push_back({ {P[i].x, P[i].y}, i });
+		for (int i = 0; i < N; i++)
+		{
+			temp.push_back({{P[i].x, P[i].y}, i});
 		}
 		sort(temp.begin(), temp.end());
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			v.push_back(P[temp[i].second]);
 		}
 	}
@@ -324,59 +464,78 @@ inline pair<Vec2*, int> convex_hull(vector<Vec2>& P) {// “Ê•ï
 	b.push_back(v[N - 1]);
 	b.push_back(v[N - 2]);
 
-	for (int i = 2; i < N; i++) {
+	for (int i = 2; i < N; i++)
+	{
 		int j = N - 1 - i;
 		int M1 = (int)a.size(), M2 = (int)b.size();
-		while ((v[i] - a[M1 - 2]).cross(a[M1 - 1] - a[M1 - 2]) > -EPS) {
-			a.pop_back(); M1--;
-			if (M1 == 1) { break; }
+		while ((v[i] - a[M1 - 2]).cross(a[M1 - 1] - a[M1 - 2]) > -EPS)
+		{
+			a.pop_back();
+			M1--;
+			if (M1 == 1)
+			{
+				break;
+			}
 		}
-		while ((v[j] - b[M2 - 2]).cross(b[M2 - 1] - b[M2 - 2]) > -EPS) {
-			b.pop_back(); M2--;
-			if (M2 == 1) { break; }
+		while ((v[j] - b[M2 - 2]).cross(b[M2 - 1] - b[M2 - 2]) > -EPS)
+		{
+			b.pop_back();
+			M2--;
+			if (M2 == 1)
+			{
+				break;
+			}
 		}
 		a.push_back(v[i]);
 		b.push_back(v[j]);
 	}
-	for (int i = 0; i < (int)b.size(); i++) {
-		if (b[i] != a.back() && b[i] != a[0]) {
+	for (int i = 0; i < (int)b.size(); i++)
+	{
+		if (b[i] != a.back() && b[i] != a[0])
+		{
 			a.push_back(b[i]);
 		}
 	}
 	int s = (int)a.size();
 
-	pair<Vec2*, int> p;
+	pair<Vec2 *, int> p;
 	p.first = new Vec2[s];
 	p.second = s;
-	for (int i = 0; i < s; i++) {
+	for (int i = 0; i < s; i++)
+	{
 		p.first[i] = a[i];
 	}
 	return p;
 }
-Circle SmallestEnclosingDisk(Vec2* P0, int N) {// Å¬•ïŠÜ‰~
+Circle SmallestEnclosingDisk(Vec2 *P0, int N)
+{ // æœ€å°åŒ…å«å††
 	vector<Vec2> P;
-	for (int i = 0; i < N; i++) {
+	for (int i = 0; i < N; i++)
+	{
 		P.push_back(P0[i]);
 	}
 	shuffle(P.begin(), P.end(), MT);
 	vector<pair<int, pair<int, vector<int>>>> stack;
 	{
 		vector<int> v;
-		stack.push_back({ 0, { N, v } });
+		stack.push_back({0, {N, v}});
 	}
 
 	int counter = 0;
 
 	Circle D;
-	while (stack.size() > 0) {
+	while (stack.size() > 0)
+	{
 		counter++;
 
 		int command = stack.back().first;
 		int M = stack.back().second.first;
 		vector<int> v = stack.back().second.second;
 
-		if (M == 0 || v.size() == 3) {
-			switch (v.size()) {
+		if (M == 0 || v.size() == 3)
+		{
+			switch (v.size())
+			{
 			case 0:
 				D = Circle(Vec2(0, 0), 0);
 				break;
@@ -395,20 +554,24 @@ Circle SmallestEnclosingDisk(Vec2* P0, int N) {// Å¬•ïŠÜ‰~
 			}
 			stack.pop_back();
 		}
-		else {
-			switch (command) {
+		else
+		{
+			switch (command)
+			{
 			case 0:
 				stack.back().first++;
-				stack.push_back({ 0, { M - 1, v} });
+				stack.push_back({0, {M - 1, v}});
 				break;
 			case 1:
-				if ((D.center - P[M - 1]).length2() > D.r2) {
+				if ((D.center - P[M - 1]).length2() > D.r2)
+				{
 					vector<int> v1 = v;
 					v1.push_back(M - 1);
 					stack.pop_back();
-					stack.push_back({ 0, { M - 1, v1} });
+					stack.push_back({0, {M - 1, v1}});
 				}
-				else {
+				else
+				{
 					stack.pop_back();
 				}
 				break;
@@ -417,8 +580,7 @@ Circle SmallestEnclosingDisk(Vec2* P0, int N) {// Å¬•ïŠÜ‰~
 	}
 	return D;
 }
-Circle SmallestEnclosingDisk(vector<Vec2>& points) {// Å¬•ïŠÜ‰~
+Circle SmallestEnclosingDisk(vector<Vec2> &points)
+{ // æœ€å°åŒ…å«å††
 	return SmallestEnclosingDisk(points.data(), (int)points.size());
 }
-
-*/

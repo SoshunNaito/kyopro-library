@@ -1,33 +1,48 @@
-/*
-
-class Z_algorithm {// O(N)‚Åæ“ª‚©‚ç‚Ì‹¤’Ê•”•ª—ñ‚Ì’·‚³‚ğ‹‚ß‚é
+class Z_algorithm
+{ // O(N)ã§å…ˆé ­ã‹ã‚‰ã®å…±é€šéƒ¨åˆ†åˆ—ã®é•·ã•ã‚’æ±‚ã‚ã‚‹
 public:
-	void process(const char* str, int n) {
+	void process(const char *str, int n)
+	{
 		v.resize(n);
 		v[0] = n;
 		int i = 1, j = 0;
-		while (i < n) {
-			while (i + j < n && str[j] == str[i + j]) ++j;
+		while (i < n)
+		{
+			while (i + j < n && str[j] == str[i + j])
+				++j;
 			v[i] = j;
-			if (j == 0) { ++i; continue; }
+			if (j == 0)
+			{
+				++i;
+				continue;
+			}
 			int k = 1;
-			while (i + k < n && k + v[k] < j) v[i + k] = v[k], ++k;
-			i += k; j -= k;
+			while (i + k < n && k + v[k] < j)
+				v[i + k] = v[k], ++k;
+			i += k;
+			j -= k;
 		}
 	}
-	void process(string S) {
+	void process(string S)
+	{
 		process(S.c_str(), S.length());
 	}
 	vector<int> v;
 };
 
-class Rolling_Hash {// ƒ[ƒŠƒ“ƒOƒnƒbƒVƒ…
+class Rolling_Hash
+{ // ãƒ­ãƒ¼ãƒªãƒ³ã‚°ãƒãƒƒã‚·ãƒ¥
 public:
-	Rolling_Hash() {
+	Rolling_Hash()
+	{
 		v.clear();
 	}
-	void process(const char* str, int n, int width) {// •¶š—ñ‚ÆA‘S’·‚ÆAØ‚èo‚·’·‚³‚ğw’è
-		if (width > n) { return; }
+	void process(const char *str, int n, int width)
+	{ // æ–‡å­—åˆ—ã¨ã€å…¨é•·ã¨ã€åˆ‡ã‚Šå‡ºã™é•·ã•ã‚’æŒ‡å®š
+		if (width > n)
+		{
+			return;
+		}
 		v.resize(n - width + 1);
 		ll p1 = 0, p2 = 0;
 		ll t1 = 1, t2 = 1;
@@ -35,8 +50,10 @@ public:
 			ll k = width;
 			ll d1 = digit1;
 			ll d2 = digit2;
-			while (k > 0) {
-				if (k & 1) {
+			while (k > 0)
+			{
+				if (k & 1)
+				{
 					t1 *= d1;
 					t1 %= mod1;
 					t2 *= d2;
@@ -47,21 +64,39 @@ public:
 				d2 = (d2 * d2) % mod2;
 			}
 		}
-		for (int i = 0; i < width; i++) {
-			p1 *= digit1; p1 += str[i]; p1 %= mod1;
-			p2 *= digit2; p2 += str[i]; p2 %= mod2;
+		for (int i = 0; i < width; i++)
+		{
+			p1 *= digit1;
+			p1 += str[i];
+			p1 %= mod1;
+			p2 *= digit2;
+			p2 += str[i];
+			p2 %= mod2;
 		}
 		int j = 0;
-		v[j] = (p1 << 30) + p2; j++;
-		for (int i = width; i < n; i++, j++) {
-			p1 *= digit1; p1 += str[i] - str[i - width] * t1; p1 %= mod1;
-			p2 *= digit2; p2 += str[i] - str[i - width] * t2; p2 %= mod2;
-			if (p1 < 0) { p1 += mod1; }
-			if (p2 < 0) { p2 += mod2; }
+		v[j] = (p1 << 30) + p2;
+		j++;
+		for (int i = width; i < n; i++, j++)
+		{
+			p1 *= digit1;
+			p1 += str[i] - str[i - width] * t1;
+			p1 %= mod1;
+			p2 *= digit2;
+			p2 += str[i] - str[i - width] * t2;
+			p2 %= mod2;
+			if (p1 < 0)
+			{
+				p1 += mod1;
+			}
+			if (p2 < 0)
+			{
+				p2 += mod2;
+			}
 			v[j] = (p1 << 30) + p2;
 		}
 	}
-	void process(string S, int width) {// •¶š—ñ‚ÆAØ‚èo‚·’·‚³‚ğw’è
+	void process(string S, int width)
+	{ // æ–‡å­—åˆ—ã¨ã€åˆ‡ã‚Šå‡ºã™é•·ã•ã‚’æŒ‡å®š
 		process(S.c_str(), S.length(), width);
 	}
 
@@ -74,5 +109,3 @@ private:
 public:
 	vector<ll> v;
 };
-
-*/

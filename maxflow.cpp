@@ -1,36 +1,54 @@
-/*
-template<typename Cap>
-class Ford_Fulkerson {
+template <typename Cap>
+class Ford_Fulkerson
+{
 public:
-	Ford_Fulkerson(int _N) {
+	Ford_Fulkerson(int _N)
+	{
 		N = _N;
 		G.resize(N);
 		used.resize(N, false);
 	}
-	struct edge { int to; Cap cap; int rev; };
+	struct edge
+	{
+		int to;
+		Cap cap;
+		int rev;
+	};
 
 	int N;
 	vector<vector<edge>> G;
 	vector<bool> used;
 
-	void add_edge(int from, int to, Cap cap) {
-		G[from].push_back({ to, cap, (int)G[to].size() });
-		G[to].push_back({ from, 0, (int)G[from].size() - 1 });
+	void add_edge(int from, int to, Cap cap)
+	{
+		G[from].push_back({to, cap, (int)G[to].size()});
+		G[to].push_back({from, 0, (int)G[from].size() - 1});
 	}
-	int dfs(int v, int t, Cap f, vector <unordered_map<int, Cap>>& result) {
-		if (v == t) { return f; }
+	int dfs(int v, int t, Cap f, vector<unordered_map<int, Cap>> &result)
+	{
+		if (v == t)
+		{
+			return f;
+		}
 		used[v] = true;
-		for (int i = 0; i < G[v].size(); i++) {
-			edge& e = G[v][i];
-			if (!used[e.to] && e.cap > 0) {
+		for (int i = 0; i < G[v].size(); i++)
+		{
+			edge &e = G[v][i];
+			if (!used[e.to] && e.cap > 0)
+			{
 				Cap d = dfs(e.to, t, min(f, e.cap), result);
-				if (d > 0) {
+				if (d > 0)
+				{
 					e.cap -= d;
 					G[e.to][e.rev].cap += d;
-					if (result[v].find(e.to) == result[v].end()) {
-						result[v].insert({ e.to, d });
+					if (result[v].find(e.to) == result[v].end())
+					{
+						result[v].insert({e.to, d});
 					}
-					else { result[v][e.to] += d; }
+					else
+					{
+						result[v][e.to] += d;
+					}
 					return d;
 				}
 			}
@@ -38,65 +56,96 @@ public:
 		return 0;
 	}
 
-	pair<vector<unordered_map<int, Cap>>, Cap> max_flow(int s, int t) {
+	pair<vector<unordered_map<int, Cap>>, Cap> max_flow(int s, int t)
+	{
 		vector<unordered_map<int, Cap>> result(N);
 		Cap flow = 0;
-		while (true) {
-			used.clear(); used.resize(N, false);
+		while (true)
+		{
+			used.clear();
+			used.resize(N, false);
 			Cap f = dfs(s, t, 1 << 30, result);
-			if (f == 0) { return { result, flow }; }
+			if (f == 0)
+			{
+				return {result, flow};
+			}
 			flow += f;
 		}
 	}
 };
 
-template<typename Cap>
-class Dinic {
+template <typename Cap>
+class Dinic
+{
 public:
-	Dinic(int _N) {
+	Dinic(int _N)
+	{
 		N = _N;
 		G.resize(N);
 	}
-	struct edge { int to; Cap cap; int rev; };
+	struct edge
+	{
+		int to;
+		Cap cap;
+		int rev;
+	};
 
 	int N;
 	vector<vector<edge>> G;
 	vector<int> level;
 	vector<int> iter;
 
-	void add_edge(int from, int to, ll cap) {
-		G[from].push_back({ to, cap, (int)G[to].size() });
-		G[to].push_back({ from, 0, (int)G[from].size() - 1 });
+	void add_edge(int from, int to, ll cap)
+	{
+		G[from].push_back({to, cap, (int)G[to].size()});
+		G[to].push_back({from, 0, (int)G[from].size() - 1});
 	}
-	void bfs(int s) {
-		level.clear(); level.resize(N, -1);
+	void bfs(int s)
+	{
+		level.clear();
+		level.resize(N, -1);
 		queue<int> que;
 		level[s] = 0;
 		que.push(s);
-		while (que.size() > 0) {
-			int v = que.front(); que.pop();
-			for (int i = 0; i < G[v].size(); i++) {
-				edge& e = G[v][i];
-				if (e.cap > 0 && level[e.to] < 0) {
+		while (que.size() > 0)
+		{
+			int v = que.front();
+			que.pop();
+			for (int i = 0; i < G[v].size(); i++)
+			{
+				edge &e = G[v][i];
+				if (e.cap > 0 && level[e.to] < 0)
+				{
 					level[e.to] = level[v] + 1;
 					que.push(e.to);
 				}
 			}
 		}
 	}
-	int dfs(int v, int t, Cap f, vector <unordered_map<int, Cap>>& result) {
-		if (v == t) { return f; }
-		for (int& i = iter[v]; i < G[v].size(); i++) {
-			edge& e = G[v][i];
-			if (e.cap > 0 && level[v] < level[e.to]) {
+	int dfs(int v, int t, Cap f, vector<unordered_map<int, Cap>> &result)
+	{
+		if (v == t)
+		{
+			return f;
+		}
+		for (int &i = iter[v]; i < G[v].size(); i++)
+		{
+			edge &e = G[v][i];
+			if (e.cap > 0 && level[v] < level[e.to])
+			{
 				Cap d = dfs(e.to, t, min(f, e.cap), result);
-				if (d > 0) {
+				if (d > 0)
+				{
 					e.cap -= d;
 					G[e.to][e.rev].cap += d;
-					if (result[v].find(e.to) == result[v].end()) {
-						result[v].insert({ e.to, d });
+					if (result[v].find(e.to) == result[v].end())
+					{
+						result[v].insert({e.to, d});
 					}
-					else { result[v][e.to] += d; }
+					else
+					{
+						result[v][e.to] += d;
+					}
 					return d;
 				}
 			}
@@ -104,112 +153,156 @@ public:
 		return 0;
 	}
 
-	pair<vector<unordered_map<int, Cap>>, Cap> max_flow(int s, int t) {
+	pair<vector<unordered_map<int, Cap>>, Cap> max_flow(int s, int t)
+	{
 		vector<unordered_map<int, Cap>> result(N);
 		Cap flow = 0;
-		while (true) {
+		while (true)
+		{
 			bfs(s);
-			if (level[t] < 0) { return { result, flow }; }
-			iter.clear(); iter.resize(N, 0);
+			if (level[t] < 0)
+			{
+				return {result, flow};
+			}
+			iter.clear();
+			iter.resize(N, 0);
 			Cap f;
-			while ((f = dfs(s, t, 1 << 30, result)) > 0) { flow += f; }
+			while ((f = dfs(s, t, 1 << 30, result)) > 0)
+			{
+				flow += f;
+			}
 		}
 	}
 };
 
-template<typename Cap>
-class maxflowClass {
+template <typename Cap>
+class maxflowClass
+{
 public:
 	maxflowClass() { N = 0, M = 0; }
-	maxflowClass(int _N) {
+	maxflowClass(int _N)
+	{
 		N = 0, M = 0;
-		for (int i = 0; i < _N; i++) { addNode(i); }
+		for (int i = 0; i < _N; i++)
+		{
+			addNode(i);
+		}
 	}
 
-	struct edge { int from, to; Cap cap; };
-	struct result { int from, to; Cap flow; };
+	struct edge
+	{
+		int from, to;
+		Cap cap;
+	};
+	struct result
+	{
+		int from, to;
+		Cap flow;
+	};
 
-	void addNode(int n) {
+	void addNode(int n)
+	{
 		assert(mp.find(n) == mp.end());
-		mp.insert({ n, N }); imap.push_back(n); N++;
-		next.resize(N); back.resize(N);
+		mp.insert({n, N});
+		imap.push_back(n);
+		N++;
+		next.resize(N);
+		back.resize(N);
 	}
-	void addEdge(int from, int to, Cap cap) {
+	void addEdge(int from, int to, Cap cap)
+	{
 		assert(mp.find(from) != mp.end());
 		assert(mp.find(to) != mp.end());
-		from = mp[from]; to = mp[to];
+		from = mp[from];
+		to = mp[to];
 
-		edgeData.push_back({ from, to, cap });
-		next[from].push_back({ to, M }); back[to].push_back({ from, M });
+		edgeData.push_back({from, to, cap});
+		next[from].push_back({to, M});
+		back[to].push_back({from, M});
 		M++;
 	}
 
-	pair<vector<result>, Cap> ford_fulkerson(int s, int t) {
+	pair<vector<result>, Cap> ford_fulkerson(int s, int t)
+	{
 		assert(mp.find(s) != mp.end());
 		assert(mp.find(t) != mp.end());
-		s = mp[s]; t = mp[t];
+		s = mp[s];
+		t = mp[t];
 
 		Ford_Fulkerson<Cap> F(N);
-		for (int i = 0; i < M; i++) {
+		for (int i = 0; i < M; i++)
+		{
 			F.add_edge(edgeData[i].from, edgeData[i].to, edgeData[i].cap);
 		}
 
 		auto res = F.max_flow(s, t);
 		vector<result> ans;
-		for (int i = 0; i < res.first.size(); i++) {
-			for (auto itr = res.first[i].begin(); itr != res.first[i].end(); itr++) {
-				ans.push_back({ imap[i], itr->first,itr->second });
+		for (int i = 0; i < res.first.size(); i++)
+		{
+			for (auto itr = res.first[i].begin(); itr != res.first[i].end(); itr++)
+			{
+				ans.push_back({imap[i], itr->first, itr->second});
 			}
 		}
-		return { ans, res.second };
+		return {ans, res.second};
 	}
 
-	pair<vector<result>, Cap> dinic(int s, int t) {
+	pair<vector<result>, Cap> dinic(int s, int t)
+	{
 		assert(mp.find(s) != mp.end());
 		assert(mp.find(t) != mp.end());
-		s = mp[s]; t = mp[t];
+		s = mp[s];
+		t = mp[t];
 
 		Dinic<Cap> D(N);
-		for (int i = 0; i < M; i++) {
+		for (int i = 0; i < M; i++)
+		{
 			D.add_edge(edgeData[i].from, edgeData[i].to, edgeData[i].cap);
 		}
 
 		auto res = D.max_flow(s, t);
 		vector<result> ans;
-		for (int i = 0; i < res.first.size(); i++) {
-			for (auto itr = res.first[i].begin(); itr != res.first[i].end(); itr++) {
-				ans.push_back({ imap[i], itr->first,itr->second });
+		for (int i = 0; i < res.first.size(); i++)
+		{
+			for (auto itr = res.first[i].begin(); itr != res.first[i].end(); itr++)
+			{
+				ans.push_back({imap[i], itr->first, itr->second});
 			}
 		}
-		return { ans, res.second };
+		return {ans, res.second};
 	}
 
-	void Debug(pair<vector<result>, Cap>& ans) {
-		for (int i = 0; i < ans.first.size(); i++) {
-			result& r = ans.first[i];
+	void Debug(pair<vector<result>, Cap> &ans)
+	{
+		for (int i = 0; i < ans.first.size(); i++)
+		{
+			result &r = ans.first[i];
 			cout << r.from << " --> " << r.to << " : " << r.flow << endl;
 		}
-		cout << "‡Œv = " << ans.second << endl;
+		cout << "åˆè¨ˆ = " << ans.second << endl;
 	}
 
 	int N, M;
-	unordered_map<int, int> mp; // ŠO•”‚ÌID‚©‚ç“à•”‚Ì’Ê‚µ”Ô†‚É
-	vector<int> imap; // “à•”‚Ì’Ê‚µ”Ô†‚©‚çŠO•”‚ÌID‚É
+	unordered_map<int, int> mp; // å¤–éƒ¨ã®IDã‹ã‚‰å†…éƒ¨ã®é€šã—ç•ªå·ã«
+	vector<int> imap;			// å†…éƒ¨ã®é€šã—ç•ªå·ã‹ã‚‰å¤–éƒ¨ã®IDã«
 
-	vector<edge> edgeData; // n“_‚ÆI“_‚Æ•Û‚·‚éƒf[ƒ^
-	vector<vector<pair<int, int>>> next; // s‚«æ‚ÆƒGƒbƒW”Ô†
-	vector<vector<pair<int, int>>> back; // –ß‚éæ‚ÆƒGƒbƒW”Ô†
+	vector<edge> edgeData;				 // å§‹ç‚¹ã¨çµ‚ç‚¹ã¨ä¿æŒã™ã‚‹ãƒ‡ãƒ¼ã‚¿
+	vector<vector<pair<int, int>>> next; // è¡Œãå…ˆã¨ã‚¨ãƒƒã‚¸ç•ªå·
+	vector<vector<pair<int, int>>> back; // æˆ»ã‚‹å…ˆã¨ã‚¨ãƒƒã‚¸ç•ªå·
 };
 
-
-int main() {
+int main()
+{
 	ios::sync_with_stdio(false);
 	std::cin.tie(0);
 
-	int V, E; cin >> V >> E;
+	int V, E;
+	cin >> V >> E;
 	maxflowClass<ll> MF(V);
-	for (int i = 0; i < E; i++) {
-		int a, b, c; cin >> a >> b >> c;
+	for (int i = 0; i < E; i++)
+	{
+		int a, b, c;
+		cin >> a >> b >> c;
 		MF.addEdge(a, b, c);
 	}
 
@@ -219,4 +312,3 @@ int main() {
 
 	return 0;
 }
-*/

@@ -1,82 +1,108 @@
-/*
-/////////////         qsort‚Ìƒ‰ƒbƒsƒ“ƒO
+/////////////         qsortã®ãƒ©ãƒƒãƒ”ãƒ³ã‚°
 
-int qsort_int_compare_ascend(const void *a, const void *b) {
-	return *(int*)a - *(int*)b;
+int qsort_int_compare_ascend(const void *a, const void *b)
+{
+	return *(int *)a - *(int *)b;
 }
-int qsort_int_compare_descend(const void *a, const void *b) {
-	return *(int*)b - *(int*)a;
+int qsort_int_compare_descend(const void *a, const void *b)
+{
+	return *(int *)b - *(int *)a;
 }
-void ascendOrder(int size, int *array) {//¸‡
+void ascendOrder(int size, int *array)
+{ //æ˜‡é †
 	qsort(array, size, sizeof(int), qsort_int_compare_ascend);
 }
-void descendOrder(int size, int *array) {//~‡
+void descendOrder(int size, int *array)
+{ //é™é †
 	qsort(array, size, sizeof(int), qsort_int_compare_descend);
 }
-int qsort_long_compare_ascend(const void *a, const void *b) {//llŒ^
-	ll c = *(ll*)a - *(ll*)b;
-	if (c > 0) { return 1; }
-	else if (c < 0) { return -1; }
+int qsort_long_compare_ascend(const void *a, const void *b)
+{ // llå‹
+	ll c = *(ll *)a - *(ll *)b;
+	if (c > 0)
+	{
+		return 1;
+	}
+	else if (c < 0)
+	{
+		return -1;
+	}
 	return 0;
 }
-int qsort_long_compare_descend(const void *a, const void *b) {//llŒ^
-	ll c = *(ll*)b - *(ll*)a;
-	if (c > 0) { return 1; }
-	else if (c < 0) { return -1; }
+int qsort_long_compare_descend(const void *a, const void *b)
+{ // llå‹
+	ll c = *(ll *)b - *(ll *)a;
+	if (c > 0)
+	{
+		return 1;
+	}
+	else if (c < 0)
+	{
+		return -1;
+	}
 	return 0;
 }
-void ascendOrder(int size, ll *array) {//¸‡
+void ascendOrder(int size, ll *array)
+{ //æ˜‡é †
 	qsort(array, size, sizeof(ll), qsort_long_compare_ascend);
 }
-void descendOrder(int size, ll *array) {//~‡
+void descendOrder(int size, ll *array)
+{ //é™é †
 	qsort(array, size, sizeof(ll), qsort_long_compare_descend);
 }
 
-class pairClass { // ƒyƒA‚Ìƒ\[ƒg
+class pairClass
+{ // ãƒšã‚¢ã®ã‚½ãƒ¼ãƒˆ
 public:
 	pairClass() { key = 0, value = 0; }
 	ll key, value;
 };
-int qsort_int_compare_ascend(const void *a, const void *b) {//key‚ğŒ©”ä‚×‚é
-	ll x = ((pairClass*)a)->key - ((pairClass*)b)->key;
+int qsort_int_compare_ascend(const void *a, const void *b)
+{ // keyã‚’è¦‹æ¯”ã¹ã‚‹
+	ll x = ((pairClass *)a)->key - ((pairClass *)b)->key;
 	return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
 }
-int qsort_int_compare_descend(const void *a, const void *b) {//key‚ğŒ©”ä‚×‚é
-	ll x = ((pairClass*)b)->key - ((pairClass*)a)->key;
+int qsort_int_compare_descend(const void *a, const void *b)
+{ // keyã‚’è¦‹æ¯”ã¹ã‚‹
+	ll x = ((pairClass *)b)->key - ((pairClass *)a)->key;
 	return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
 }
-void ascendOrder(int size, pairClass *array) {//¸‡
+void ascendOrder(int size, pairClass *array)
+{ //æ˜‡é †
 	qsort(array, size, sizeof(pairClass), qsort_int_compare_ascend);
 }
-void descendOrder(int size, pairClass *array) {//~‡
+void descendOrder(int size, pairClass *array)
+{ //é™é †
 	qsort(array, size, sizeof(pairClass), qsort_int_compare_descend);
 }
 
-class compareClass {
+class compareClass
+{
 public:
-	compareClass() {
+	compareClass()
+	{
 		ID = 0;
 		content = 0;
 	}
 	int ID;
 	int content;
 };
-int qsort_compareClass_ascend(const void *a, const void *b) {
-	return ((compareClass*)a)->content - ((compareClass*)b)->content;
+int qsort_compareClass_ascend(const void *a, const void *b)
+{
+	return ((compareClass *)a)->content - ((compareClass *)b)->content;
 }
-void getAscendRanking(int size, int *array, int *buf) {// ¸‡‚Ìƒ‰ƒ“ƒLƒ“ƒO‚ğ“¾‚é
+void getAscendRanking(int size, int *array, int *buf)
+{ // æ˜‡é †ã®ãƒ©ãƒ³ã‚­ãƒ³ã‚°ã‚’å¾—ã‚‹
 	compareClass *c = new compareClass[size];
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++)
+	{
 		c[i].content = array[i];
 		c[i].ID = i;
 	}
 	qsort(c, size, sizeof(compareClass), qsort_compareClass_ascend);
-	for (int i = 0; i < size; i++) {
+	for (int i = 0; i < size; i++)
+	{
 		buf[c[i].ID] = i;
 	}
 	delete[] c;
 }
-
-
-
-*/

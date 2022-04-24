@@ -1,4 +1,3 @@
-/*
 #include <iostream>
 #include <algorithm>
 #include <iomanip>
@@ -24,24 +23,32 @@ using namespace std;
 typedef long long ll;
 #define endl '\n'
 
-template<typename T>
-inline bool chmin(T& x, T a) {
-	if (x >= a) { x = a; return true; }
+template <typename T>
+inline bool chmin(T &x, T a)
+{
+	if (x >= a)
+	{
+		x = a;
+		return true;
+	}
 	return false;
 }
 
-template<typename T>
-inline bool chmax(T& x, T a) {
-	if (x <= a) { x = a; return true; }
+template <typename T>
+inline bool chmax(T &x, T a)
+{
+	if (x <= a)
+	{
+		x = a;
+		return true;
+	}
 	return false;
 }
 
-int main() {
+int main()
+{
 	ios::sync_with_stdio(false);
 	std::cin.tie(0);
 
-
-
 	return 0;
 }
-*/

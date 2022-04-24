@@ -1,48 +1,66 @@
-/*
 ////////////////	UnionFind
 #define UnionFind dsu
 
-
 /////////////         UnionFind
-// ‘®‚·‚é’¸“_W‡‚àŠÇ—‚µ‚Ä‚¢‚é‚Ì‚Å O(NlogN) ‚Æ‚È‚éD
+// å±ã™ã‚‹é ‚ç‚¹é›†åˆã‚‚ç®¡ç†ã—ã¦ã„ã‚‹ã®ã§ O(NlogN) ã¨ãªã‚‹ï¼
 
 #define USE_UNIONFIND
 #define UF_COMPRESS_ROUTE
-class UnionFindClass {
+class UnionFindClass
+{
 public:
 	UnionFindClass() { N = 0; }
 	UnionFindClass(int n) { activate(n); }
 
-	inline void activate(int n) {// —v‘f‚Ì”N
+	inline void activate(int n)
+	{ // è¦ç´ ã®æ•°N
 		N = n;
-		parent.clear(); parent.resize(N, -1);
-		content.clear(); content.resize(N);
-		for (int i = 0; i < N; i++) { content[i].insert(i); }
+		parent.clear();
+		parent.resize(N, -1);
+		content.clear();
+		content.resize(N);
+		for (int i = 0; i < N; i++)
+		{
+			content[i].insert(i);
+		}
 	}
-	inline int getParent(int x) {// ƒOƒ‹[ƒv‚Ìe‚Ì”Ô†‚ğ“¾‚é
-		if (parent[x] == -1) { return x; }
+	inline int getParent(int x)
+	{ // ã‚°ãƒ«ãƒ¼ãƒ—ã®è¦ªã®ç•ªå·ã‚’å¾—ã‚‹
+		if (parent[x] == -1)
+		{
+			return x;
+		}
 		int y = getParent(parent[x]);
 #ifdef UF_COMPRESS_ROUTE
 		parent[x] = y;
 #endif
 		return y;
 	}
-	inline int getSize(int x) {// ©•ª‚ª‘®‚·‚éƒOƒ‹[ƒv‚ÌƒTƒCƒY‚ğ“¾‚é
+	inline int getSize(int x)
+	{ // è‡ªåˆ†ãŒå±ã™ã‚‹ã‚°ãƒ«ãƒ¼ãƒ—ã®ã‚µã‚¤ã‚ºã‚’å¾—ã‚‹
 		return content[getParent(x)].size();
 	}
-	inline bool connect(int x, int y) {// “ñ‚Â‚Ì—v‘f‚ğŒ‹‚ÔD‚QƒOƒ‹[ƒvŠÔ‚ğŒq‚¢‚¾ê‡true‚ğ•Ô‚·
+	inline bool connect(int x, int y)
+	{ // äºŒã¤ã®è¦ç´ ã‚’çµã¶ï¼ï¼’ã‚°ãƒ«ãƒ¼ãƒ—é–“ã‚’ç¹‹ã„ã å ´åˆtrueã‚’è¿”ã™
 		x = getParent(x), y = getParent(y);
-		if (x == y) { return false; }
-		if (content[x].size() < content[y].size()) {
+		if (x == y)
+		{
+			return false;
+		}
+		if (content[x].size() < content[y].size())
+		{
 			parent[x] = y;
-			for (auto itr = content[x].begin(); itr != content[x].end(); itr++) {
+			for (auto itr = content[x].begin(); itr != content[x].end(); itr++)
+			{
 				content[y].insert(*itr);
 			}
 			content[x].clear();
 		}
-		else {
+		else
+		{
 			parent[y] = x;
-			for (auto itr = content[y].begin(); itr != content[y].end(); itr++) {
+			for (auto itr = content[y].begin(); itr != content[y].end(); itr++)
+			{
 				content[x].insert(*itr);
 			}
 			content[y].clear();
@@ -50,16 +68,20 @@ public:
 		return true;
 	}
 
-	inline void debugCout() {
+	inline void debugCout()
+	{
 		cout << endl;
-		cout << "’¸“_” = " << N << "ŒÂ" << endl;
+		cout << "é ‚ç‚¹æ•° = " << N << "å€‹" << endl;
 		cout << endl;
 
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			cout << "i = " << i << " , parent = " << parent[i];
-			if (parent[i] == -1) {
+			if (parent[i] == -1)
+			{
 				cout << " : ";
-				for (auto itr = content[i].begin(); itr != content[i].end(); itr++) {
+				for (auto itr = content[i].begin(); itr != content[i].end(); itr++)
+				{
 					cout << *itr << " ";
 				}
 			}
@@ -68,165 +90,253 @@ public:
 		cout << endl;
 	}
 
-	int N;// ŒÂ”
-	vector<int> parent;// e‚Ì”Ô†D©•ª©g‚ªe‚È‚ç-1D
-	vector<set<int>> content;// e‚Ì‚İ—LŒøD‘®‚·‚é’¸“_‚ÌW‡C
+	int N;					  // å€‹æ•°
+	vector<int> parent;		  // è¦ªã®ç•ªå·ï¼è‡ªåˆ†è‡ªèº«ãŒè¦ªãªã‚‰-1ï¼
+	vector<set<int>> content; // è¦ªã®ã¿æœ‰åŠ¹ï¼å±ã™ã‚‹é ‚ç‚¹ã®é›†åˆï¼Œ
 };
 
-
-
-/////////////		ƒOƒ‰ƒt‚ğˆµ‚¤ƒNƒ‰ƒX
-struct EdgeType {
-	EdgeType() {
+/////////////		ã‚°ãƒ©ãƒ•ã‚’æ‰±ã†ã‚¯ãƒ©ã‚¹
+struct EdgeType
+{
+	EdgeType()
+	{
 		from = 0, to = 0;
 		weight = 1LL;
 	}
-	EdgeType(int _from, int _to, ll _weight) {
-		from = _from; to = _to; weight = _weight;
+	EdgeType(int _from, int _to, ll _weight)
+	{
+		from = _from;
+		to = _to;
+		weight = _weight;
 	}
 	int from, to;
 	ll weight;
 };
-class GraphClass {// ƒOƒ‰ƒt“ü—Í‚ğó‚¯æ‚é
+class GraphClass
+{ // ã‚°ãƒ©ãƒ•å…¥åŠ›ã‚’å—ã‘å–ã‚‹
 public:
-	GraphClass(int n, bool directed) {// ’¸“_”n‚ÌƒOƒ‰ƒt‚ğ‰Šú‰»‚·‚é
+	GraphClass(int n, bool directed)
+	{ // é ‚ç‚¹æ•°nã®ã‚°ãƒ©ãƒ•ã‚’åˆæœŸåŒ–ã™ã‚‹
 		directedFlag = directed;
-		N = n; M = 0;
+		N = n;
+		M = 0;
 		next.resize(N);
 	}
-	inline void addEdge(EdgeType e) {// ƒGƒbƒW’Ç‰Á
+	inline void addEdge(EdgeType e)
+	{ // ã‚¨ãƒƒã‚¸è¿½åŠ 
 		int n = (int)edge.size();
-		edge.push_back(e); M++;
-		next[e.from].push_back({ e.to, n });
-		if (directedFlag == false) { next[e.to].push_back({ e.from, n }); }
+		edge.push_back(e);
+		M++;
+		next[e.from].push_back({e.to, n});
+		if (directedFlag == false)
+		{
+			next[e.to].push_back({e.from, n});
+		}
 	}
-	inline void addEdge(int x, int y, ll weight = 1) {// ƒGƒbƒW’Ç‰Á
-		addEdge({ x,y,weight });
+	inline void addEdge(int x, int y, ll weight = 1)
+	{ // ã‚¨ãƒƒã‚¸è¿½åŠ 
+		addEdge({x, y, weight});
 	}
-	bool isTree() {// –Ø‚É‚È‚Á‚Ä‚¢‚é‚©‚Ç‚¤‚©•—Dæ’Tõ‚Å’²‚×‚é
-		if (N <= 0 || M != N - 1) { return false; }
+	bool isTree()
+	{ // æœ¨ã«ãªã£ã¦ã„ã‚‹ã‹ã©ã†ã‹å¹…å„ªå…ˆæ¢ç´¢ã§èª¿ã¹ã‚‹
+		if (N <= 0 || M != N - 1)
+		{
+			return false;
+		}
 
-		vector<bool> visited(N, false); visited[0] = true;
-		queue<int> q; q.push(0);
-		while (q.size() > 0) {
-			int n = q.front(); q.pop();
+		vector<bool> visited(N, false);
+		visited[0] = true;
+		queue<int> q;
+		q.push(0);
+		while (q.size() > 0)
+		{
+			int n = q.front();
+			q.pop();
 			visited[n] = true;
-			for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
-				if (visited[itr->first] == false) { q.push(itr->first); }
+			for (auto itr = next[n].begin(); itr != next[n].end(); itr++)
+			{
+				if (visited[itr->first] == false)
+				{
+					q.push(itr->first);
+				}
 			}
 		}
-		for (int i = 0; i < N; i++) {
-			if (visited[i] == false) { return false; }
+		for (int i = 0; i < N; i++)
+		{
+			if (visited[i] == false)
+			{
+				return false;
+			}
 		}
 		return true;
 	}
 #ifdef USE_TREE
 #ifdef USE_UNIONFIND
-	TreeClass* kruskal() {// ƒNƒ‰ƒXƒJƒ‹–@‚É‚æ‚Á‚ÄÅ¬‘Sˆæ–Ø‚ğ\¬‚·‚é
-		TreeClass* T = new TreeClass(N);
-		UnionFindClass uf; uf.activate(N);
+	TreeClass *kruskal()
+	{ // ã‚¯ãƒ©ã‚¹ã‚«ãƒ«æ³•ã«ã‚ˆã£ã¦æœ€å°å…¨åŸŸæœ¨ã‚’æ§‹æˆã™ã‚‹
+		TreeClass *T = new TreeClass(N);
+		UnionFindClass uf;
+		uf.activate(N);
 
 		vector<pair<ll, pair<int, int>>> E;
-		for (int i = 0; i < edge.size(); i++) {
-			E.push_back({ edge[i].weight, {edge[i].from, edge[i].to} });
+		for (int i = 0; i < edge.size(); i++)
+		{
+			E.push_back({edge[i].weight, {edge[i].from, edge[i].to}});
 		}
 		sort(E.begin(), E.end());
 
-		for (auto itr = E.begin(); itr != E.end(); itr++) {
-			int x = itr->second.first, y = itr->second.second; ll w = itr->first;
-			if (uf.getParent(x) != uf.getParent(y)) {
-				T->addEdge(x, y, w); uf.connect(x, y);
+		for (auto itr = E.begin(); itr != E.end(); itr++)
+		{
+			int x = itr->second.first, y = itr->second.second;
+			ll w = itr->first;
+			if (uf.getParent(x) != uf.getParent(y))
+			{
+				T->addEdge(x, y, w);
+				uf.connect(x, y);
 			}
 		}
 		return T;
 	}
 #endif
 #endif
-	void dijkstra(int n, vector<ll>& buf) {// ƒ_ƒCƒNƒXƒgƒ‰–@‚Ån“_n‚©‚ç‚ÌÅ’Z‹——£‚ğ“¾‚é
+	void dijkstra(int n, vector<ll> &buf)
+	{ // ãƒ€ã‚¤ã‚¯ã‚¹ãƒˆãƒ©æ³•ã§å§‹ç‚¹nã‹ã‚‰ã®æœ€çŸ­è·é›¢ã‚’å¾—ã‚‹
 		assert(n >= 0 && n < N);
 
-		buf.clear(); buf.resize(N, INF); buf[n] = 0;
-		set<pair<ll, int>> st; st.insert({ 0, n });
-		while (st.size() > 0) {
-			const pair<ll, int> p = *st.begin(); st.erase(st.begin());
+		buf.clear();
+		buf.resize(N, INF);
+		buf[n] = 0;
+		set<pair<ll, int>> st;
+		st.insert({0, n});
+		while (st.size() > 0)
+		{
+			const pair<ll, int> p = *st.begin();
+			st.erase(st.begin());
 			const int x = p.second;
 
-			if (p.first <= buf[x]) {
-				for (auto itr = next[x].begin(); itr != next[x].end(); itr++) {
+			if (p.first <= buf[x])
+			{
+				for (auto itr = next[x].begin(); itr != next[x].end(); itr++)
+				{
 					const int y = itr->first;
 					const EdgeType e = edge[itr->second];
-					if (buf[y] > buf[x] + e.weight) {
+					if (buf[y] > buf[x] + e.weight)
+					{
 						buf[y] = buf[x] + e.weight;
-						st.insert({ buf[y], y });
+						st.insert({buf[y], y});
 					}
 				}
 			}
 		}
 	}
 
-	bool bellmanFord(int n, vector<ll>& buf) {// ƒxƒ‹ƒ}ƒ“ƒtƒH[ƒh–@‚Ån“_n‚©‚ç‚ÌÅ’Z‹——£‚ğ“¾‚é
+	bool bellmanFord(int n, vector<ll> &buf)
+	{ // ãƒ™ãƒ«ãƒãƒ³ãƒ•ã‚©ãƒ¼ãƒ‰æ³•ã§å§‹ç‚¹nã‹ã‚‰ã®æœ€çŸ­è·é›¢ã‚’å¾—ã‚‹
 		assert(n >= 0 && n < N);
 
-		buf.clear(); buf.resize(N, INF); buf[n] = 0;
-		vector<bool> wait(N, false); wait[0] = true;
-		vector<int> count(N, 0); count[0]++;
-		queue<int> que; que.push(0);
+		buf.clear();
+		buf.resize(N, INF);
+		buf[n] = 0;
+		vector<bool> wait(N, false);
+		wait[0] = true;
+		vector<int> count(N, 0);
+		count[0]++;
+		queue<int> que;
+		que.push(0);
 
-		while (que.size() > 0) {
-			const int x = que.front(); que.pop();
+		while (que.size() > 0)
+		{
+			const int x = que.front();
+			que.pop();
 			wait[x] = false;
-			for (auto itr = next[x].begin(); itr != next[x].end(); itr++) {
+			for (auto itr = next[x].begin(); itr != next[x].end(); itr++)
+			{
 				const int y = itr->first;
 				const EdgeType e = edge[itr->second];
-				if (buf[y] <= buf[x] + e.weight) { continue; }
+				if (buf[y] <= buf[x] + e.weight)
+				{
+					continue;
+				}
 				buf[y] = buf[x] + e.weight;
-				if (wait[y] == false) {
-					wait[y] = true; count[y]++; que.push(y);
-					if (count[y] == N) { return false; }
+				if (wait[y] == false)
+				{
+					wait[y] = true;
+					count[y]++;
+					que.push(y);
+					if (count[y] == N)
+					{
+						return false;
+					}
 				}
 			}
 		}
 		return true;
 	}
 
-	bool getDistanceFrom(int n, vector<ll>& buf) {// ‚ ‚é“_‚©‚ç‚ÌÅ’Z‹——£‚Ì•\‚ğó‚¯æ‚éB
+	bool getDistanceFrom(int n, vector<ll> &buf)
+	{ // ã‚ã‚‹ç‚¹ã‹ã‚‰ã®æœ€çŸ­è·é›¢ã®è¡¨ã‚’å—ã‘å–ã‚‹ã€‚
 		assert(n >= 0 && n < N);
 
 		bool negativeFlag = false;
-		for (int i = 0; i < edge.size(); i++) {
-			if (edge[i].weight < 0) { negativeFlag = true; break; }
+		for (int i = 0; i < edge.size(); i++)
+		{
+			if (edge[i].weight < 0)
+			{
+				negativeFlag = true;
+				break;
+			}
 		}
-		if (negativeFlag) {// •‰‚Ìd‚İ‚ª‚ ‚ê‚Îƒxƒ‹ƒ}ƒ“ƒtƒH[ƒh–@
+		if (negativeFlag)
+		{ // è² ã®é‡ã¿ãŒã‚ã‚Œã°ãƒ™ãƒ«ãƒãƒ³ãƒ•ã‚©ãƒ¼ãƒ‰æ³•
 			return bellmanFord(n, buf);
 		}
-		else {// ‘S‚Ä”ñ•‰‚È‚çƒ_ƒCƒNƒXƒgƒ‰–@
-			dijkstra(n, buf); return true;
+		else
+		{ // å…¨ã¦éè² ãªã‚‰ãƒ€ã‚¤ã‚¯ã‚¹ãƒˆãƒ©æ³•
+			dijkstra(n, buf);
+			return true;
 		}
 	}
 
-	vector<vector<ll>> getDistanceTable() {// Å’Z‹——£‚Ì•\‚ğó‚¯æ‚éB‘ÎŠp¬•ª‚É”ñƒ[ƒ‚ªŠÜ‚Ü‚ê‚Ä‚¢‚½‚çAd‚İ•‰‚Ì•Â˜H‚ª‘¶İ‚µ‚Ä‚¢‚éB
+	vector<vector<ll>> getDistanceTable()
+	{ // æœ€çŸ­è·é›¢ã®è¡¨ã‚’å—ã‘å–ã‚‹ã€‚å¯¾è§’æˆåˆ†ã«éã‚¼ãƒ­ãŒå«ã¾ã‚Œã¦ã„ãŸã‚‰ã€é‡ã¿è² ã®é–‰è·¯ãŒå­˜åœ¨ã—ã¦ã„ã‚‹ã€‚
 		vector<vector<ll>> buf(N);
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			buf[i].resize(N, INF);
 			buf[i][i] = 0;
 		}
 
 		bool negativeFlag = false;
-		for (int i = 0; i < edge.size(); i++) {
-			if (edge[i].weight < 0) { negativeFlag = true; break; }
+		for (int i = 0; i < edge.size(); i++)
+		{
+			if (edge[i].weight < 0)
+			{
+				negativeFlag = true;
+				break;
+			}
 		}
-		if (negativeFlag == false) {// ‘S‚Ä0ˆÈã‚¾‚Á‚½‚çƒ_ƒCƒNƒXƒgƒ‰–@‚ğg‚¤
-			for (int i = 0; i < N; i++) { dijkstra(i, buf[i]); }
+		if (negativeFlag == false)
+		{ // å…¨ã¦0ä»¥ä¸Šã ã£ãŸã‚‰ãƒ€ã‚¤ã‚¯ã‚¹ãƒˆãƒ©æ³•ã‚’ä½¿ã†
+			for (int i = 0; i < N; i++)
+			{
+				dijkstra(i, buf[i]);
+			}
 		}
-		else {// •‰‚Ìd‚İ‚ªŠÜ‚Ü‚ê‚Ä‚¢‚½‚çƒ[ƒVƒƒƒ‹ƒtƒƒCƒh–@‚ğg‚¤
-			for (int i = 0; i < N; i++) {
-				for (auto itr = next[i].begin(); itr != next[i].end(); itr++) {
+		else
+		{ // è² ã®é‡ã¿ãŒå«ã¾ã‚Œã¦ã„ãŸã‚‰ãƒ¯ãƒ¼ã‚·ãƒ£ãƒ«ãƒ•ãƒ­ã‚¤ãƒ‰æ³•ã‚’ä½¿ã†
+			for (int i = 0; i < N; i++)
+			{
+				for (auto itr = next[i].begin(); itr != next[i].end(); itr++)
+				{
 					buf[i][itr->first] = edge[itr->second].weight;
 				}
 			}
-			for (int i = 0; i < N; i++) {
-				for (int j = 0; j < N; j++) {
-					for (int k = 0; k < N; k++) {
+			for (int i = 0; i < N; i++)
+			{
+				for (int j = 0; j < N; j++)
+				{
+					for (int k = 0; k < N; k++)
+					{
 						chmin(buf[j][k], buf[j][i] + buf[i][k]);
 					}
 				}
@@ -235,20 +345,27 @@ public:
 		return buf;
 	}
 
-	void debugCout() {// ƒfƒoƒbƒOo—Í—p
+	void debugCout()
+	{ // ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›ç”¨
 		cout << endl;
-		cout << "ƒm[ƒh‚ÌŒÂ” = " << N << "ŒÂ" << endl;
-		cout << "ƒGƒbƒW‚Ì–{” = " << M << "–{" << endl;
+		cout << "ãƒãƒ¼ãƒ‰ã®å€‹æ•° = " << N << "å€‹" << endl;
+		cout << "ã‚¨ãƒƒã‚¸ã®æœ¬æ•° = " << M << "æœ¬" << endl;
 		cout << endl;
 
-		for (int i = 0; i < N; i++) {
-			cout << "i = " << i << " (nodeWeight = " << nodeWeight[i] << "), Ú‘±æ = ";
-			if (next[i].size() == 0) { cout << "‚È‚µ" << endl; continue; }
+		for (int i = 0; i < N; i++)
+		{
+			cout << "i = " << i << " (nodeWeight = " << nodeWeight[i] << "), æ¥ç¶šå…ˆ = ";
+			if (next[i].size() == 0)
+			{
+				cout << "ãªã—" << endl;
+				continue;
+			}
 			auto itr = next[i].begin();
 			cout << itr->first << "(weight = " << edge[itr->second].weight << ")";
 			itr++;
 
-			for (; itr != next[i].end(); itr++) {
+			for (; itr != next[i].end(); itr++)
+			{
 				cout << ", " << itr->first << "(weight = " << edge[itr->second].weight << ")";
 			}
 			cout << endl;
@@ -256,35 +373,42 @@ public:
 		cout << endl;
 	}
 
-	bool directedFlag;// —LŒüƒOƒ‰ƒt‚©‚Ç‚¤‚©
+	bool directedFlag; // æœ‰å‘ã‚°ãƒ©ãƒ•ã‹ã©ã†ã‹
 	int N, M;
-	vector<ll> nodeWeight;// ƒm[ƒh‚Ìd‚İ
-	vector<vector<pair<int, int>>> next;// Šeƒm[ƒh‚©‚ç‚Ìs‚«æ‚ÆƒGƒbƒW”Ô†
-	vector<EdgeType> edge;// ƒGƒbƒW(’¸“_ƒyƒA‚Æd‚İ)
+	vector<ll> nodeWeight;				 // ãƒãƒ¼ãƒ‰ã®é‡ã¿
+	vector<vector<pair<int, int>>> next; // å„ãƒãƒ¼ãƒ‰ã‹ã‚‰ã®è¡Œãå…ˆã¨ã‚¨ãƒƒã‚¸ç•ªå·
+	vector<EdgeType> edge;				 // ã‚¨ãƒƒã‚¸(é ‚ç‚¹ãƒšã‚¢ã¨é‡ã¿)
 };
 
-int main() {
+int main()
+{
 	ios::sync_with_stdio(false);
 	std::cin.tie(0);
 
-	int N, M; cin >> N >> M;
+	int N, M;
+	cin >> N >> M;
 	GraphClass G(N, false);
-	for (int i = 0; i < M; i++) {
-		int a, b; cin >> a >> b; a--, b--;
+	for (int i = 0; i < M; i++)
+	{
+		int a, b;
+		cin >> a >> b;
+		a--, b--;
 		G.addEdge(a, b);
 	}
 
-	G.debugCout();// ƒfƒoƒbƒOo—Í
+	G.debugCout(); // ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
 
 	G.removeEdge(1, 3);
 	G.removeEdge(3, 5);
 
-	G.debugCout();// ƒfƒoƒbƒOo—Í
+	G.debugCout(); // ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›
 
-	cout << "Å’Z‹——£‚Ì•\" << endl;
+	cout << "æœ€çŸ­è·é›¢ã®è¡¨" << endl;
 	auto table = G.getDistanceTable();
-	for (int i = 0; i < N; i++) {
-		for (int j = 0; j < N; j++) {
+	for (int i = 0; i < N; i++)
+	{
+		for (int j = 0; j < N; j++)
+		{
 			cout << table[i][j] << " ";
 		}
 		cout << endl;
@@ -292,7 +416,8 @@ int main() {
 
 	return 0;
 }
-//////		ŒŸØ—p“ü—Íƒf[ƒ^
+/*
+//////		æ¤œè¨¼ç”¨å…¥åŠ›ãƒ‡ãƒ¼ã‚¿
 7 10
 1 3
 1 5
@@ -304,6 +429,4 @@ int main() {
 4 6
 5 6
 6 7
-
-
 */

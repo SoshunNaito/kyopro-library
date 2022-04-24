@@ -1,16 +1,18 @@
-/*
-
-///////////////// Šeíİ’è /////////////////
+///////////////// å„ç¨®è¨­å®š /////////////////
 
 #define USE_SUBTREE_SIZE
 #define USE_LCA
 
 #define USE_TREE
-class TreeClass {// –Ø‚Ì“ü—Í‚ğó‚¯æ‚é
+class TreeClass
+{ // æœ¨ã®å…¥åŠ›ã‚’å—ã‘å–ã‚‹
 public:
-	TreeClass(int n, int _root = 0) {// ’¸“_”n‚ÌƒOƒ‰ƒt‚ğ‰Šú‰»‚·‚éB
-		N = n; root = _root;
-		nodeWeight.resize(N, 1); next.resize(N);
+	TreeClass(int n, int _root = 0)
+	{ // é ‚ç‚¹æ•°nã®ã‚°ãƒ©ãƒ•ã‚’åˆæœŸåŒ–ã™ã‚‹ã€‚
+		N = n;
+		root = _root;
+		nodeWeight.resize(N, 1);
+		next.resize(N);
 #ifdef USE_SUBTREE_SIZE
 		subtree_size.resize(N);
 #endif
@@ -18,18 +20,23 @@ public:
 		parent.resize(N);
 #endif
 	}
-	inline void setNodeWeight(int n, ll weight) {// n”Ô‚Ìƒm[ƒh‚Ìd‚İ‚ğweight‚Éİ’è
+	inline void setNodeWeight(int n, ll weight)
+	{ // nç•ªã®ãƒãƒ¼ãƒ‰ã®é‡ã¿ã‚’weightã«è¨­å®š
 		nodeWeight[n] = weight;
 	}
-	inline int getEdgeIndex(int x, int y) {// •Ó‚Ì‘g‚©‚çƒGƒbƒW‚Ì”Ô†‚ğ“¾‚é
+	inline int getEdgeIndex(int x, int y)
+	{ // è¾ºã®çµ„ã‹ã‚‰ã‚¨ãƒƒã‚¸ã®ç•ªå·ã‚’å¾—ã‚‹
 		assert(next[x].find(y) != next[x].end());
 		return next[x][y];
 	}
-	inline void addEdge(int x, int y, ll weight = 1) {// ƒGƒbƒW’Ç‰Á
+	inline void addEdge(int x, int y, ll weight = 1)
+	{ // ã‚¨ãƒƒã‚¸è¿½åŠ 
 		int n = (int)edge.size();
-		edge.push_back({ {x,y}, weight });
-		next[x].insert({ y, n }); next[y].insert({ x, n });
-		if (n == N - 2) {
+		edge.push_back({{x, y}, weight});
+		next[x].insert({y, n});
+		next[y].insert({x, n});
+		if (n == N - 2)
+		{
 			initProcess();
 #ifdef USE_SUBTREE_SIZE
 			dfs(&TreeClass::dfs_processSubtreeSize);
@@ -40,133 +47,205 @@ public:
 		}
 	}
 #ifdef USE_LCA
-	inline int LCA(int a, int b) {
+	inline int LCA(int a, int b)
+	{
 		int d = min(depth[a], depth[b]);
-		if (depth[a] > d) {
+		if (depth[a] > d)
+		{
 			int k = depth[a] - d;
-			for (int i = 0; k > 0; i++) {
-				if ((1 << i) & k) {
-					k -= (1 << i); a = parent[a][i];
+			for (int i = 0; k > 0; i++)
+			{
+				if ((1 << i) & k)
+				{
+					k -= (1 << i);
+					a = parent[a][i];
 				}
 			}
 		}
-		if (depth[b] > d) {
+		if (depth[b] > d)
+		{
 			int k = depth[b] - d;
-			for (int i = 0; k > 0; i++) {
-				if ((1 << i) & k) {
-					k -= (1 << i); b = parent[b][i];
+			for (int i = 0; k > 0; i++)
+			{
+				if ((1 << i) & k)
+				{
+					k -= (1 << i);
+					b = parent[b][i];
 				}
 			}
 		}
-		if (a == b) { return a; }
+		if (a == b)
+		{
+			return a;
+		}
 
-		for (int k = parent[a].size() - 1; k >= 0; k--) {
-			if (k < parent[a].size() && k < parent[b].size() && (parent[a][k] != parent[b][k])) {
-				a = parent[a][k]; b = parent[b][k];
+		for (int k = parent[a].size() - 1; k >= 0; k--)
+		{
+			if (k < parent[a].size() && k < parent[b].size() && (parent[a][k] != parent[b][k]))
+			{
+				a = parent[a][k];
+				b = parent[b][k];
 			}
 		}
 		return parent[a][0];
 	}
 #endif
-	inline void changeRoot(int r, bool ProcessDoublingFlag = true) {
+	inline void changeRoot(int r, bool ProcessDoublingFlag = true)
+	{
 		assert(r >= 0 && r < N);
-		root = r; initProcess();
+		root = r;
+		initProcess();
 #ifdef USE_SUBTREE_SIZE
 		dfs(&TreeClass::dfs_processSubtreeSize);
 #endif
 #ifdef USE_LCA
-		if (ProcessDoublingFlag)  bfs(&TreeClass::bfs_processDoubling);
+		if (ProcessDoublingFlag)
+			bfs(&TreeClass::bfs_processDoubling);
 #endif
 	}
-	inline pair<int, vector<int>> getDiameter_and_Center() {
+	inline pair<int, vector<int>> getDiameter_and_Center()
+	{
 		int r0 = root;
 		int d1 = -1, k1 = -1;
-		for (int i = 0; i < N; i++) {
-			if (chmax(d1, depth[i])) { k1 = i; }
+		for (int i = 0; i < N; i++)
+		{
+			if (chmax(d1, depth[i]))
+			{
+				k1 = i;
+			}
 		}
 		changeRoot(k1, false);
 
 		int d2 = -1, k2 = -1;
-		for (int i = 0; i < N; i++) {
-			if (chmax(d2, depth[i])) { k2 = i; }
+		for (int i = 0; i < N; i++)
+		{
+			if (chmax(d2, depth[i]))
+			{
+				k2 = i;
+			}
 		}
 		int i = k2;
-		while (1) {
+		while (1)
+		{
 			int j = back[i].first;
-			if (depth[j] == d2 / 2) {
+			if (depth[j] == d2 / 2)
+			{
 				changeRoot(r0, false);
-				if (d2 % 2 == 0) { return { d2, { j } }; }
-				else { return { d2, { i, j } }; }
+				if (d2 % 2 == 0)
+				{
+					return {d2, {j}};
+				}
+				else
+				{
+					return {d2, {i, j}};
+				}
 			}
 			i = j;
 		}
 	}
+
 private:
-	inline void initProcess() {// bfs‚Ì‡”Ô‚ğæ“¾‚·‚é‚Æ“¯‚ÉAª‚©‚ç‚Ì[‚³‚ğ“¾‚éB
-		depth.clear(); depth.resize(N, -1);
-		back.clear(); back.resize(N, { -1,-1 });
+	inline void initProcess()
+	{ // bfsã®é †ç•ªã‚’å–å¾—ã™ã‚‹ã¨åŒæ™‚ã«ã€æ ¹ã‹ã‚‰ã®æ·±ã•ã‚’å¾—ã‚‹ã€‚
+		depth.clear();
+		depth.resize(N, -1);
+		back.clear();
+		back.resize(N, {-1, -1});
 
-		queue<pair<int, int>> q; q.push({ root, 0 });
+		queue<pair<int, int>> q;
+		q.push({root, 0});
 		bfs_order.clear();
-		while (q.size() > 0) {
-			int n = q.front().first, d = q.front().second; q.pop();
-			bfs_order.push_back(n); depth[n] = d;
+		while (q.size() > 0)
+		{
+			int n = q.front().first, d = q.front().second;
+			q.pop();
+			bfs_order.push_back(n);
+			depth[n] = d;
 
-			auto _erase = next[n].end();// ª‚ÉŒü‚©‚¤•Ó
-			for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
+			auto _erase = next[n].end(); // æ ¹ã«å‘ã‹ã†è¾º
+			for (auto itr = next[n].begin(); itr != next[n].end(); itr++)
+			{
 				int m = itr->first;
-				if (depth[m] == -1) { q.push({ m, d + 1 }); }
-				else {
+				if (depth[m] == -1)
+				{
+					q.push({m, d + 1});
+				}
+				else
+				{
 					_erase = itr;
-					back[n] = { itr->first, itr->second };
+					back[n] = {itr->first, itr->second};
 				}
 			}
-			if (_erase != next[n].end()) { next[n].erase(_erase); }
+			if (_erase != next[n].end())
+			{
+				next[n].erase(_erase);
+			}
 		}
 	}
-	inline void dfs(void (TreeClass::* dfs_process)(int n)) {
-		for (int i = N - 1; i >= 0; i--) { (this->*dfs_process)(bfs_order[i]); }
+	inline void dfs(void (TreeClass::*dfs_process)(int n))
+	{
+		for (int i = N - 1; i >= 0; i--)
+		{
+			(this->*dfs_process)(bfs_order[i]);
+		}
 	}
-	inline void bfs(void (TreeClass::* bfs_process)(int n)) {
-		for (int i = 0; i < N; i++) { (this->*bfs_process)(bfs_order[i]); }
+	inline void bfs(void (TreeClass::*bfs_process)(int n))
+	{
+		for (int i = 0; i < N; i++)
+		{
+			(this->*bfs_process)(bfs_order[i]);
+		}
 	}
 #ifdef USE_SUBTREE_SIZE
-	void dfs_processSubtreeSize(int n) {// •”•ª–Ø‚ÌƒTƒCƒY‚ğ“¾‚é
+	void dfs_processSubtreeSize(int n)
+	{ // éƒ¨åˆ†æœ¨ã®ã‚µã‚¤ã‚ºã‚’å¾—ã‚‹
 		subtree_size[n] = 1;
-		for (auto itr = next[n].begin(); itr != next[n].end(); itr++) {
+		for (auto itr = next[n].begin(); itr != next[n].end(); itr++)
+		{
 			subtree_size[n] += subtree_size[itr->first];
 		}
 	}
 #endif
 #ifdef USE_LCA
-	void bfs_processDoubling(int n) {// ƒ_ƒuƒŠƒ“ƒO
+	void bfs_processDoubling(int n)
+	{ // ãƒ€ãƒ–ãƒªãƒ³ã‚°
 		parent[n].clear();
-		if (n == root) { return; }
+		if (n == root)
+		{
+			return;
+		}
 
 		parent[n].push_back(back[n].first);
-		for (int k = 0; depth[n] >= (1 << (k + 1)); k++) {
+		for (int k = 0; depth[n] >= (1 << (k + 1)); k++)
+		{
 			parent[n].push_back(parent[parent[n][k]][k]);
 		}
 	}
 #endif
 
 public:
-	void debugCout() {// ƒfƒoƒbƒOo—Í—p
+	void debugCout()
+	{ // ãƒ‡ãƒãƒƒã‚°å‡ºåŠ›ç”¨
 		cout << endl;
-		cout << "ƒm[ƒh‚ÌŒÂ” = " << N << "ŒÂ" << endl;
-		cout << "ª = " << root << endl;
+		cout << "ãƒãƒ¼ãƒ‰ã®å€‹æ•° = " << N << "å€‹" << endl;
+		cout << "æ ¹ = " << root << endl;
 		cout << endl;
 
-		for (int i = 0; i < N; i++) {
-			cout << "i = " << i << " (nodeWeight = " << nodeWeight[i] << "), e = " <<
-				((i == root) ? "‚È‚µ" : to_string(back[i].first)) << ", Ú‘±æ = ";
-			if (next[i].size() == 0) { cout << "‚È‚µ" << endl; continue; }
+		for (int i = 0; i < N; i++)
+		{
+			cout << "i = " << i << " (nodeWeight = " << nodeWeight[i] << "), è¦ª = " << ((i == root) ? "ãªã—" : to_string(back[i].first)) << ", æ¥ç¶šå…ˆ = ";
+			if (next[i].size() == 0)
+			{
+				cout << "ãªã—" << endl;
+				continue;
+			}
 
 			auto itr = next[i].begin();
 			cout << itr->first << "(weight = " << edge[itr->second].second << ")";
 			itr++;
 
-			for (; itr != next[i].end(); itr++) {
+			for (; itr != next[i].end(); itr++)
+			{
 				cout << ", " << itr->first << "(weight = " << edge[itr->second].second << ")";
 			}
 			cout << endl;
@@ -175,49 +254,57 @@ public:
 	}
 
 	int N, root;
-	vector<ll> nodeWeight;// ƒm[ƒh‚Ìd‚İ
-	vector<pair<pair<int, int>, ll>> edge;// ƒGƒbƒW(’¸“_ƒyƒA‚Æd‚İ)
-	vector<pair<int, int>> back;// ª‚É‹ß‚¢ƒm[ƒh‚ÆAƒGƒbƒW”Ô†
-	vector<unordered_map<int, int>> next;// Šeƒm[ƒh‚©‚ç‚Ìs‚«æ‚ÆƒGƒbƒW”Ô†
+	vector<ll> nodeWeight;				   // ãƒãƒ¼ãƒ‰ã®é‡ã¿
+	vector<pair<pair<int, int>, ll>> edge; // ã‚¨ãƒƒã‚¸(é ‚ç‚¹ãƒšã‚¢ã¨é‡ã¿)
+	vector<pair<int, int>> back;		   // æ ¹ã«è¿‘ã„ãƒãƒ¼ãƒ‰ã¨ã€ã‚¨ãƒƒã‚¸ç•ªå·
+	vector<unordered_map<int, int>> next;  // å„ãƒãƒ¼ãƒ‰ã‹ã‚‰ã®è¡Œãå…ˆã¨ã‚¨ãƒƒã‚¸ç•ªå·
 
-	vector<int> depth;// ª‚©‚çŒ©‚½[‚³
-	vector<int> bfs_order;// bfs‚ÌÛ‚É–K‚ê‚é‡”Ô(dfs‚Í‹t‡)
+	vector<int> depth;	   // æ ¹ã‹ã‚‰è¦‹ãŸæ·±ã•
+	vector<int> bfs_order; // bfsã®éš›ã«è¨ªã‚Œã‚‹é †ç•ª(dfsã¯é€†é †)
 #ifdef USE_SUBTREE_SIZE
-	vector<int> subtree_size;// •”•ª–Ø‚ÌƒTƒCƒY
+	vector<int> subtree_size; // éƒ¨åˆ†æœ¨ã®ã‚µã‚¤ã‚º
 #endif
 #ifdef USE_LCA
-	vector<vector<int>> parent;//1”Ô–ÚA2”Ô–ÚA4”Ô–ÚA8”Ô–Ú...‚Ìe
+	vector<vector<int>> parent; // 1ç•ªç›®ã€2ç•ªç›®ã€4ç•ªç›®ã€8ç•ªç›®...ã®è¦ª
 #endif
 };
 
-inline void dfs(TreeClass &T, void (*dfs_process)(TreeClass& T, int n)) {
-	for (int i = T.N - 1; i >= 0; i--) {
+inline void dfs(TreeClass &T, void (*dfs_process)(TreeClass &T, int n))
+{
+	for (int i = T.N - 1; i >= 0; i--)
+	{
 		dfs_process(T, T.bfs_order[i]);
 	}
 }
-inline void bfs(TreeClass& T, void (*bfs_process)(TreeClass& T, int n)) {
-	for (int i = 0; i < T.N; i++) {
+inline void bfs(TreeClass &T, void (*bfs_process)(TreeClass &T, int n))
+{
+	for (int i = 0; i < T.N; i++)
+	{
 		bfs_process(T, T.bfs_order[i]);
 	}
 }
 
-class TreeDP_data {
+class TreeDP_data
+{
 public:
-	TreeDP_data() {
-
+	TreeDP_data()
+	{
 	}
-	void init(TreeClass& T, int _n) {
+	void init(TreeClass &T, int _n)
+	{
 		n = _n;
 	}
-	inline void forward_ans_tie(TreeClass& T, TreeDP_data& Other) {
+	inline void forward_ans_tie(TreeClass &T, TreeDP_data &Other)
+	{
 		int m = Other.n;
 
-		////////////ˆÈ‰º‚Éˆ—‚ğ‘‚­////////////
+		////////////ä»¥ä¸‹ã«å‡¦ç†ã‚’æ›¸ã////////////
 	}
-	inline void backward_ans_tie(TreeClass& T, TreeDP_data& Other) {
+	inline void backward_ans_tie(TreeClass &T, TreeDP_data &Other)
+	{
 		int m = Other.n;
 
-		////////////ˆÈ‰º‚Éˆ—‚ğ‘‚­////////////
+		////////////ä»¥ä¸‹ã«å‡¦ç†ã‚’æ›¸ã////////////
 	}
 
 	int n;
@@ -225,86 +312,112 @@ public:
 };
 vector<TreeDP_data> DP_data;
 
-void TreeDP_forwardProcess(TreeClass &T, int n) {
-	for (auto itr = T.next[n].begin(); itr != T.next[n].end(); itr++) {
+void TreeDP_forwardProcess(TreeClass &T, int n)
+{
+	for (auto itr = T.next[n].begin(); itr != T.next[n].end(); itr++)
+	{
 		int m = itr->first;
 		DP_data[n].forward_ans_tie(T, DP_data[m]);
 	}
 }
-void TreeDP_backwardProcess(TreeClass& T, int n) {
-	if (n == T.root) { DP_data[n].ans = DP_data[n].forward_ans; return; }
+void TreeDP_backwardProcess(TreeClass &T, int n)
+{
+	if (n == T.root)
+	{
+		DP_data[n].ans = DP_data[n].forward_ans;
+		return;
+	}
 	int m = T.back[n].first;
 	DP_data[n].backward_ans_tie(T, DP_data[m]);
 }
-inline void TreeDP(TreeClass &T) {
+inline void TreeDP(TreeClass &T)
+{
 	DP_data.clear();
 	DP_data.resize(T.N);
-	for (int i = 0; i < T.N; i++) {
+	for (int i = 0; i < T.N; i++)
+	{
 		DP_data[i].init(T, i);
 	}
 	dfs(T, TreeDP_forwardProcess);
 	bfs(T, TreeDP_backwardProcess);
 }
 
-class TreeHash {// ª•t‚«–Ø‚ÌƒnƒbƒVƒ…‚ğŒvZ‚·‚é
+class TreeHash
+{ // æ ¹ä»˜ãæœ¨ã®ãƒãƒƒã‚·ãƒ¥ã‚’è¨ˆç®—ã™ã‚‹
 public:
-	TreeHash() {
+	TreeHash()
+	{
 		MT.seed((unsigned int)time(NULL));
 	}
-	TreeHash(unsigned int seed) {
+	TreeHash(unsigned int seed)
+	{
 		MT.seed(seed);
 	}
 
 private:
-	inline void treeHash_process_main(TreeClass& T, int n, int depth, ll mod) {
+	inline void treeHash_process_main(TreeClass &T, int n, int depth, ll mod)
+	{
 		ll temp = 1;
 		h[n] = rnd[depth] % mod;
 		bool flag = false;
-		for (auto itr = T.next[n].begin(); itr != T.next[n].end(); itr++) {
+		for (auto itr = T.next[n].begin(); itr != T.next[n].end(); itr++)
+		{
 			int m = itr->first;
 
-			if (T.depth[m] > T.depth[n]) {// ‚Ü‚¾–K‚ê‚Ä‚¢‚È‚©‚Á‚½‚ç
+			if (T.depth[m] > T.depth[n])
+			{ // ã¾ã è¨ªã‚Œã¦ã„ãªã‹ã£ãŸã‚‰
 				treeHash_process_main(T, m, depth + 1, mod);
 				flag = true;
 				temp *= h[m];
 				temp %= mod;
 			}
 		}
-		if (flag) {
+		if (flag)
+		{
 			h[n] += temp;
-			if (h[n] >= mod) { h[n] -= mod; }
+			if (h[n] >= mod)
+			{
+				h[n] -= mod;
+			}
 		}
 	}
 
 public:
-	inline pair<ll, ll> treeHash(TreeClass& T) {// ª•t‚«–Ø‚ÌƒnƒbƒVƒ…‚ğŒvZ‚·‚é
+	inline pair<ll, ll> treeHash(TreeClass &T)
+	{ // æ ¹ä»˜ãæœ¨ã®ãƒãƒƒã‚·ãƒ¥ã‚’è¨ˆç®—ã™ã‚‹
 		int N = T.N;
-		if (h.size() < N) {
+		if (h.size() < N)
+		{
 			int n = h.size();
 			h.resize(N);
 			hash.resize(N);
 			rnd.resize(N);
 
 			uniform_int_distribution<ll> dis(0, 1LL << 60);
-			for (int i = n; i < N; i++) {
+			for (int i = n; i < N; i++)
+			{
 				rnd[i] = dis(MT);
 			}
 		}
 
 		treeHash_process_main(T, T.root, 0, 1000000007);
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			hash[i].first = h[i] << 30;
 		}
 		treeHash_process_main(T, T.root, 0, 1000000009);
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			hash[i].first += h[i];
 		}
 		treeHash_process_main(T, T.root, 0, 998244353);
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			hash[i].second = h[i] << 30;
 		}
 		treeHash_process_main(T, T.root, 0, 1000000021);
-		for (int i = 0; i < N; i++) {
+		for (int i = 0; i < N; i++)
+		{
 			hash[i].second += h[i];
 		}
 		return hash[T.root];
@@ -314,5 +427,3 @@ public:
 	vector<ll> h, rnd;
 	vector<pair<ll, ll>> hash;
 };
-
-*/
